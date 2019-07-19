@@ -4,6 +4,7 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+import versioneer
 
 requirements = [ ]
 
@@ -60,6 +61,7 @@ Methods
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/raamana/confounds',
-    version='0.0.1',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     zip_safe=False,
 )
