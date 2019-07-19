@@ -6,20 +6,14 @@
 import pytest
 
 
-from confounds import confounds
+from confounds.base import Augment, Residualize, DummyDeconfounding
+from sklearn.datasets import make_classification
+
+X, y = make_classification()
 
 
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
-
-    See more at: http://doc.pytest.org/en/latest/fixture.html
+def test_method_does_not_introduce_bias():
     """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
-
-
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+    Test to ensure any deconfounding method does NOT introduce bias in a sample
+    when confounds not have any relationship with the target!
+    """
