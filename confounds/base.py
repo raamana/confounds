@@ -27,6 +27,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 class BaseDeconfound(BaseEstimator, TransformerMixin, ABC):
     """Base class for all deconfounding or covariate adjustment methods."""
 
+    _estimator_type = "deconfounder"
+
     def __init__(self,
                  X, # variable names chosen to correspond to sklearn when possible
                  y,
