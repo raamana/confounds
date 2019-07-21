@@ -24,6 +24,11 @@ samplet: one row referring to single subject in the sample feature matrix X (siz
 from abc import ABC
 from sklearn.base import BaseEstimator, TransformerMixin
 
+class ConfoundsException(BaseException):
+    """Custom exception to indicate confounds-library specific issues."""
+
+
+
 class BaseDeconfound(BaseEstimator, TransformerMixin, ABC):
     """Base class for all deconfounding or covariate adjustment methods."""
 
