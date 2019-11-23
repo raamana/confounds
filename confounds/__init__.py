@@ -4,4 +4,16 @@
 
 __author__ = """Pradeep Reddy Raamana"""
 __email__ = 'raamana@gmail.com'
-__version__ = '0.0.1'
+
+from sys import version_info
+
+
+if version_info.major >= 3:
+    from confounds.base import Residualize
+else:
+    raise NotImplementedError('confounds library requires Python 3 or higher! ')
+
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

@@ -17,7 +17,7 @@ the sample to be unbiased, and the variable is not a true confound."
 
 Other definitions used:
 
-samplet: one row referring to single subject in the sample feature matrix X (size Nxp)
+samplet: one row referring to single subject in sample feature matrix X (size Nxp )
 
 """
 
