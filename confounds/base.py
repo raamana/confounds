@@ -33,17 +33,30 @@ class ConfoundsException(BaseException):
     """Custom exception to indicate confounds-library specific issues."""
 
 
-
 class BaseDeconfound(BaseEstimator, TransformerMixin, ABC):
     """Base class for all deconfounding or covariate adjustment methods."""
 
     _estimator_type = "deconfounder"
 
-    def __init__(self,
-                 X, # variable names chosen to correspond to sklearn when possible
-                 y,
-                 confounds):
+
+    def __init__(self, name='Deconfounder'):
         """Constructor"""
+
+        self.name = name
+
+
+    def fit(self,
+            X,  # variable names chosen to correspond to sklearn when possible
+            y,  # y is the confound variables here, not the target!
+            ):
+        """Fit method"""
+
+
+    def transform(self,
+                  X,  # variable names chosen to correspond to sklearn when possible
+                  y,  # y is the confound variables here, not the target!
+                  ):
+        """Transform method"""
 
 
 class Augment(BaseDeconfound):
@@ -51,6 +64,14 @@ class Augment(BaseDeconfound):
     Deconfounding estimator class  that simply augments/concatenates the confounding
     variables to input features prior to prediction.
     """
+
+
+    def __init__(self):
+        """Constructor"""
+
+        super().__init__(name='Augment')
+
+        raise NotImplementedError()
 
 
 class Residualize(BaseDeconfound):
@@ -147,6 +168,14 @@ class Harmonize(BaseDeconfound):
     """
 
 
+    def __init__(self):
+        """Constructor"""
+
+        super().__init__(name='Harmonize')
+
+        raise NotImplementedError()
+
+
 class ResidualizeTarget(BaseDeconfound):
     """
     Deconfounding estimator class that residualizes the input features by
@@ -154,10 +183,26 @@ class ResidualizeTarget(BaseDeconfound):
     """
 
 
+    def __init__(self):
+        """Constructor"""
+
+        super().__init__(name='ResidualizeTarget')
+
+        raise NotImplementedError()
+
+
 class StratifyByConfounds(BaseDeconfound):
     """
     Subsampling procedure to minimize the confound-to-target correlation.
     """
+
+
+    def __init__(self):
+        """Constructor"""
+
+        super().__init__(name='StratifyByConfounds')
+
+        raise NotImplementedError()
 
 
 class DummyDeconfounding(BaseDeconfound):
