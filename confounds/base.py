@@ -211,3 +211,58 @@ class DummyDeconfounding(BaseDeconfound):
     """
 
 
+    def __init__(self):
+        """Constructor"""
+
+        super().__init__(name='DummyPassThrough')
+
+
+    def fit(self, X, y=None):
+        """
+        A do-nothing fit.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
+
+        X = check_array(X, accept_sparse=True)
+        self.n_features_ = X.shape[1]
+
+        return self
+
+
+    def transform(self, X, y=None):
+        """
+         A do-nothing transform.
+
+        Parameters
+        ----------
+        X : {array-like, sparse-matrix}, shape (n_samples, n_features)
+            The input samples.
+
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+
+        Returns
+        -------
+        X_transformed : array, shape (n_samples, n_features)
+            Same as the input ``X``.
+
+        """
+
+        check_is_fitted(self, 'n_features_')
+        X = check_array(X, accept_sparse=True)
+
+        if X.shape[1] != self.n_features_:
+            raise ValueError('num_features differ between fit and transform!')
+
+        return X  # dummy pass-through, doing nothing except for shape checks.
