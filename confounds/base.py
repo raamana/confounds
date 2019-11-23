@@ -21,8 +21,13 @@ samplet: one row referring to single subject in the sample feature matrix X (siz
 
 """
 
+from confounds.utils import get_model
 from abc import ABC
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin, clone
+from sklearn.utils.validation import (check_array, check_is_fitted,
+                                      check_consistent_length)
+import numpy as np
+
 
 class ConfoundsException(BaseException):
     """Custom exception to indicate confounds-library specific issues."""
@@ -55,6 +60,77 @@ class Residualize(BaseDeconfound):
 
     Example methods: Linear, Kernel Ridge, Gaussian Process Regression etc
     """
+
+
+    def __init__(self, model='linear'):
+        """Constructor"""
+
+        super().__init__(name='Residualize')
+
+        self.model = model
+
+
+    def fit(self,
+            X,  # variable names chosen to correspond to sklearn when possible
+            y=None,  # y is the confound variables here, not the target!
+            ):
+        """Placeholder to pass sklearn conventions"""
+
+        return self._fit(X, y)  # which itself must return self
+
+
+    def _fit(self, in_features, confounds=None):
+        """Actual fit method"""
+
+        in_features = check_array(in_features)
+        confounds = check_array(confounds, ensure_2d=False)
+
+        # turning it into 2D, in case if its just a column
+        if confounds.ndim == 1:
+            confounds = confounds[:, np.newaxis]
+
+        try:
+            check_consistent_length(in_features, confounds)
+        except:
+            raise ValueError('X (features) and y (confounds) must have the same '
+                             'number rows/samplets!')
+
+        self.n_features_ = in_features.shape[1]
+
+        regr_model = clone(get_model(self.model))
+        regr_model.fit(confounds, in_features)
+        self.model_ = regr_model
+
+        return self
+
+
+    def transform(self, X, y=None):
+        """Placeholder to pass sklearn conventions"""
+
+        return self._transform(X, y)
+
+
+    def _transform(self, test_features, test_confounds):
+        """Actual deconfounding of the test features"""
+
+        check_is_fitted(self, 'model_', 'n_features_')
+        test_features = check_array(test_features, accept_sparse=True)
+
+        if test_features.shape[1] != self.n_features_:
+            raise ValueError('number of features must be {}. Given {}'
+                             ''.format(self.n_features_, test_features.shape[1]))
+
+        if test_confounds is None:  # during estimator checks
+            return test_features  # do nothing
+
+        test_confounds = check_array(test_confounds, ensure_2d=False)
+        check_consistent_length(test_features, test_confounds)
+
+        # test features as can be explained/predicted by their covariates
+        test_feat_predicted = self.model_.predict(test_confounds)
+        residuals = test_features - test_feat_predicted
+
+        return residuals
 
 
 class Harmonize(BaseDeconfound):
