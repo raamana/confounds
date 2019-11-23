@@ -47,3 +47,23 @@ def score_stratified_by_confound(score, confounds):
     """
 
     raise NotImplementedError()
+
+
+def get_model(name='linear'):
+    """String to Estimator"""
+
+    name = name.lower()
+    if name in ('linear', 'linearregression'):
+        from sklearn.linear_model import LinearRegression
+        model = LinearRegression()
+    elif name in ('ridge', 'kernelridge'):
+        from sklearn.kernel_ridge import KernelRidge
+        model = KernelRidge()
+    elif name in ('gpr', 'gaussianprocessregression'):
+        from sklearn.gaussian_process import GaussianProcessRegressor
+        model = GaussianProcessRegressor()
+    else:
+        raise ValueError('Unrecognized model name! '
+                         'Choose one of linear, ridge and GPR.')
+
+    return model
