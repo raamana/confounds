@@ -3,8 +3,16 @@
 Conquering confounds and covariates in machine learning
 ------------------------------------------------------------
 
-This ``confounds`` package is **under development**. Contributors are most welcome.
+``confounds`` package is beta and **under development**. Contributors are most welcome.
 
+----
+
+.. note::
+
+    Only ``Residualize(model='linear')``, ``Augment()`` and ``DummyDeconfounding()`` are considered usable. The rest are yet to be developed, and subject to change without notice.
+
+
+----
 
 .. image:: https://img.shields.io/pypi/v/confounds.svg
         :target: https://pypi.python.org/pypi/confounds
