@@ -6,11 +6,10 @@
 from setuptools import setup, find_packages
 import versioneer
 
-requirements = [ ]
+requirements = ['numpy', 'scikit-learn' ]
+setup_requirements = ['pytest-runner', 'setuptools']
+test_requirements = ['pytest', ] + requirements
 
-setup_requirements = ['pytest-runner', ]
-
-test_requirements = ['pytest', ]
 
 setup(
     author="Pradeep Reddy Raamana",

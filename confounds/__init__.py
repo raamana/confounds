@@ -9,7 +9,8 @@ from sys import version_info
 
 
 if version_info.major >= 3:
-    from confounds.base import Residualize
+    from confounds.base import Residualize, Augment, DummyDeconfounding, \
+        ConfoundsException
 else:
     raise NotImplementedError('confounds library requires Python 3 or higher! ')
 
