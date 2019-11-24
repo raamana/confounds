@@ -71,7 +71,62 @@ class Augment(BaseDeconfound):
 
         super().__init__(name='Augment')
 
-        raise NotImplementedError()
+        # this class has no parameters
+
+
+    def fit(self,
+            X,  # variable names chosen to correspond to sklearn when possible
+            y=None,  # y is the confound variables here, not the target!
+            ):
+        """Placeholder to pass sklearn conventions"""
+
+        return self._fit(X, y)  # which itself must return self
+
+
+    def _fit(self, in_features, confounds=None):
+        """Actual fit method"""
+
+        in_features = check_array(in_features)
+        confounds = check_array(confounds, ensure_2d=False)
+
+        # turning it into 2D, in case if its just a column
+        if confounds.ndim == 1:
+            confounds = confounds[:, np.newaxis]
+
+        try:
+            check_consistent_length(in_features, confounds)
+        except:
+            raise ValueError('X (features) and y (confounds) must have the same '
+                             'number rows/samplets!')
+
+        self.n_features_ = in_features.shape[1]
+
+        return self
+
+
+    def transform(self, X, y=None):
+        """Placeholder to pass sklearn conventions"""
+
+        return self._transform(X, y)
+
+
+    def _transform(self, test_features, test_confounds):
+        """Actual deconfounding of the test features"""
+
+        check_is_fitted(self, 'n_features_')
+        test_features = check_array(test_features, accept_sparse=True)
+
+        if test_features.shape[1] != self.n_features_:
+            raise ValueError('number of features must be {}. Given {}'
+                             ''.format(self.n_features_, test_features.shape[1]))
+
+        if test_confounds is None:  # during estimator checks
+            return test_features  # do nothing
+
+        test_confounds = check_array(test_confounds, ensure_2d=False)
+        check_consistent_length(test_features, test_confounds)
+
+        return np.hstack((test_features, test_confounds))
 
 
 class Residualize(BaseDeconfound):
