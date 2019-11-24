@@ -49,6 +49,33 @@ def score_stratified_by_confound(score, confounds):
     raise NotImplementedError()
 
 
+def get_deconfounder(name='residualize'):
+    """String to Deconfounding Estimator"""
+
+    name = name.lower()
+    if name in ('residualize', 'regressout',
+                'residualize_linear', 'regressout_linear'):
+        from confounds.base import Residualize
+        est = Residualize()
+    # elif name in ('residualize_ridge', 'residualize_kernelridge'):
+    #     from confounds.base import Residualize
+    #     est =  Residualize(model='KernelRidge')
+    # elif name in ('residualize_gpr', 'residualize_gaussianprocessregression'):
+    #     from confounds.base import Residualize
+    #     est =  Residualize(model='GPR')
+    elif name in ('augment', 'pad'):
+        from confounds.base import Augment
+        est =  Augment()
+    elif name in ('dummy', 'passthrough'):
+        from confounds.base import DummyDeconfounding
+        est =  DummyDeconfounding()
+    else:
+        raise ValueError('Unrecognized model name! '
+                         'Choose one of Residualize, Augment or Dummy.')
+
+    return est
+
+
 def get_model(name='linear'):
     """String to Estimator"""
 
