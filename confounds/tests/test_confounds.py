@@ -3,11 +3,12 @@
 
 """Tests for `confounds` package."""
 
-from confounds.base import Residualize, DummyDeconfounding, Augment
-from sklearn.utils.estimator_checks import check_estimator
-from sklearn.datasets import make_classification, make_sparse_uncorrelated
 import numpy as np
 from numpy.testing import assert_almost_equal
+from sklearn.datasets import make_classification, make_sparse_uncorrelated
+from sklearn.utils.estimator_checks import check_estimator
+
+from confounds.base import Augment, DummyDeconfounding, Residualize
 
 
 def test_estimator_API():
@@ -47,7 +48,6 @@ def test_residualize_linear():
     max_dim = 100
     for n_samples in np.random.randint(20, 500, 3):
         for num_confounds in np.random.randint(min_dim, max_dim, 3):
-
             train_all, train_y = make_sparse_uncorrelated(
                 n_samples=n_samples, n_features=min_dim + num_confounds + 1)
 
@@ -62,10 +62,8 @@ def test_residualize_linear():
             assert_almost_equal(residual_train_X.T.dot(train_confounds), 0)
 
 
-
 def test_method_does_not_introduce_bias():
     """
     Test to ensure any deconfounding method does NOT introduce bias in a sample
     when confounds not have any relationship with the target!
     """
-

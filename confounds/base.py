@@ -21,12 +21,14 @@ samplet: one row referring to single subject in sample feature matrix X (size Nx
 
 """
 
-from confounds.utils import get_model
 from abc import ABC
-from sklearn.base import BaseEstimator, TransformerMixin, clone
-from sklearn.utils.validation import (check_array, check_is_fitted,
-                                      check_consistent_length)
+
 import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin, clone
+from sklearn.utils.validation import (check_array, check_consistent_length,
+                                      check_is_fitted)
+
+from confounds.utils import get_model
 
 
 class ConfoundsException(BaseException):
@@ -168,8 +170,8 @@ class Residualize(BaseDeconfound):
         try:
             check_consistent_length(in_features, confounds)
         except:
-            raise ValueError('X (features) and y (confounds) must have the same '
-                             'number rows/samplets!')
+            raise ValueError('X (features) and y (confounds) '
+                             'must have the same number of rows/samplets!')
 
         self.n_features_ = in_features.shape[1]
 
@@ -209,28 +211,6 @@ class Residualize(BaseDeconfound):
         return residuals
 
 
-class Harmonize(BaseDeconfound):
-    """
-    Estimator to transform the input features to harmonize the input features
-    across a given set of confound variables.
-
-    Example methods include:
-    Scaling (global etc)
-    Normalization (Quantile, Functional etc)
-    Surrogate variable analysis
-    ComBat
-
-    """
-
-
-    def __init__(self):
-        """Constructor"""
-
-        super().__init__(name='Harmonize')
-
-        raise NotImplementedError()
-
-
 class ResidualizeTarget(BaseDeconfound):
     """
     Deconfounding estimator class that residualizes the input features by
@@ -242,20 +222,6 @@ class ResidualizeTarget(BaseDeconfound):
         """Constructor"""
 
         super().__init__(name='ResidualizeTarget')
-
-        raise NotImplementedError()
-
-
-class StratifyByConfounds(BaseDeconfound):
-    """
-    Subsampling procedure to minimize the confound-to-target correlation.
-    """
-
-
-    def __init__(self):
-        """Constructor"""
-
-        super().__init__(name='StratifyByConfounds')
 
         raise NotImplementedError()
 
