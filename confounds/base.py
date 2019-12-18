@@ -126,7 +126,7 @@ class Augment(BaseDeconfound):
         test_confounds = check_array(test_confounds, ensure_2d=False)
         check_consistent_length(test_features, test_confounds)
 
-        return np.hstack((test_features, test_confounds))
+        return np.column_stack((test_features, test_confounds))
 
 
 class Residualize(BaseDeconfound):
