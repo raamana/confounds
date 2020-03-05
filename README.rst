@@ -39,6 +39,12 @@ To be added:
  - Stratify (sub- or resampling procedures to minimize confounding)
  - Utilities (Goals 1 and 3)
 
+Installation
+~~~~~~~~~~~~~~
+
+ - Python 3 is required, and upgrade pip if possible: ``python3 -m pip install --upgrade pip``
+ - Install it easily with ``pip install -U confounds``
+ - If you want to contribute, fork this repo, clone it on your machine, improve it and send pull requests. Thanks.
 
 Example usage
 ~~~~~~~~~~~~~~
@@ -50,6 +56,8 @@ X is often split into ``train_X`` and ``test_X`` inside the cross-validation loo
 
 .. code-block:: python
 
+        from confounds import Residualize, Augment, DummyDeconfounding
+        
         resid = Residualize()          # instantiation
         # NOTE the second argument to deconfounding instance are confounds/covariate variables, not y (targets)
         resid.fit(train_X, train_C)    # training on X and C
