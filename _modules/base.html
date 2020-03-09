@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>base &#8212; confounds 0.1.1+0.g739ec48.dirty documentation</title>
+    <link rel="stylesheet" href="../_static/pd.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <script type="text/javascript" src="../_static/pd.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  </head><body>
+    <div id="header">
+        <h1>confounds 0.1.1+0.g739ec48.dirty documentation</h1>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+        <ul>
+            <li class="nav-item nav-item-0"><a href="../index.html">confounds 0.1.1+0.g739ec48.dirty documentation</a> &#187;
+            </li>
+                <li class="nav-item nav-item-1"><a href="index.html"
+                        accesskey="U">Module code</a> &#187;</li>
+        </ul>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<h1>Source code for base</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">Notes</span>
+<span class="sd">~~~~~~</span>
+
+<span class="sd">.. note::</span>
+
+<span class="sd">    The second argument to the ``.fit()`` and ``.transform()`` methods of the</span>
+<span class="sd">    deconfounding classes in this library are the confounds/covariate</span>
+<span class="sd">    variables/values, not ``y`` (target values i.e. class labels or dependent</span>
+<span class="sd">    variable to be predicted)</span>
+
+
+<span class="sd">Terminology</span>
+<span class="sd">~~~~~~~~~~~~</span>
+
+<span class="sd"> - The term ``samplet`` is used to refer to one row referring to single subject in sample feature matrix X (size Nxp)</span>
+<span class="sd"> - The terms covariate and confound are used interchangeably, but know that different applications and domains may have distinctive definitions for them.</span>
+
+
+<span class="sd">Classes</span>
+<span class="sd">~~~~~~~~</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABC</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">,</span> <span class="n">clone</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="p">(</span><span class="n">check_array</span><span class="p">,</span> <span class="n">check_consistent_length</span><span class="p">,</span>
+                                      <span class="n">check_is_fitted</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">confounds.utils</span> <span class="k">import</span> <span class="n">get_model</span>
+
+
+<div class="viewcode-block" id="ConfoundsException"><a class="viewcode-back" href="../API.html#base.ConfoundsException">[docs]</a><span class="k">class</span> <span class="nc">ConfoundsException</span><span class="p">(</span><span class="ne">BaseException</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Custom exception to indicate confounds-library specific issues.&quot;&quot;&quot;</span></div>
+
+
+<span class="k">class</span> <span class="nc">BaseDeconfound</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for all deconfounding or covariate adjustment methods.&quot;&quot;&quot;</span>
+
+    <span class="n">_estimator_type</span> <span class="o">=</span> <span class="s2">&quot;deconfounder&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Deconfounder&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">X</span><span class="p">,</span>  <span class="c1"># variable names chosen to correspond to sklearn when possible</span>
+            <span class="n">y</span><span class="p">,</span>  <span class="c1"># y is the confound variables here, not the target!</span>
+            <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit method&quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">X</span><span class="p">,</span>  <span class="c1"># variable names chosen to correspond to sklearn when possible</span>
+                  <span class="n">y</span><span class="p">,</span>  <span class="c1"># y is the confound variables here, not the target!</span>
+                  <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform method&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Augment"><a class="viewcode-back" href="../API.html#base.Augment">[docs]</a><span class="k">class</span> <span class="nc">Augment</span><span class="p">(</span><span class="n">BaseDeconfound</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deconfounding estimator class  that simply augments/concatenates the confounding</span>
+<span class="sd">    variables to input features prior to prediction.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor&quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Augment&#39;</span><span class="p">)</span>
+
+        <span class="c1"># this class has no parameters</span>
+
+
+<div class="viewcode-block" id="Augment.fit"><a class="viewcode-back" href="../API.html#base.Augment.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">X</span><span class="p">,</span>  <span class="c1"># variable names chosen to correspond to sklearn when possible</span>
+            <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># y is the confound variables here, not the target!</span>
+            <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># which itself must return self</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">confounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Actual fit method&quot;&quot;&quot;</span>
+
+        <span class="n">in_features</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">in_features</span><span class="p">)</span>
+        <span class="n">confounds</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">confounds</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># turning it into 2D, in case if its just a column</span>
+        <span class="k">if</span> <span class="n">confounds</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">confounds</span> <span class="o">=</span> <span class="n">confounds</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">check_consistent_length</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">confounds</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;X (features) and y (confounds) must have the same &#39;</span>
+                             <span class="s1">&#39;number rows/samplets!&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span> <span class="o">=</span> <span class="n">in_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="Augment.transform"><a class="viewcode-back" href="../API.html#base.Augment.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_features</span><span class="p">,</span> <span class="n">test_confounds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Actual deconfounding of the test features&quot;&quot;&quot;</span>
+
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;n_features_&#39;</span><span class="p">)</span>
+        <span class="n">test_features</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">test_features</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">test_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;number of features must be </span><span class="si">{}</span><span class="s1">. Given </span><span class="si">{}</span><span class="s1">&#39;</span>
+                             <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span><span class="p">,</span> <span class="n">test_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="n">test_confounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># during estimator checks</span>
+            <span class="k">return</span> <span class="n">test_features</span>  <span class="c1"># do nothing</span>
+
+        <span class="n">test_confounds</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">test_confounds</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">check_consistent_length</span><span class="p">(</span><span class="n">test_features</span><span class="p">,</span> <span class="n">test_confounds</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">test_features</span><span class="p">,</span> <span class="n">test_confounds</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Residualize"><a class="viewcode-back" href="../API.html#base.Residualize">[docs]</a><span class="k">class</span> <span class="nc">Residualize</span><span class="p">(</span><span class="n">BaseDeconfound</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deconfounding estimator class that residualizes the input features by</span>
+<span class="sd">    subtracting the contributions from the confound variables</span>
+
+<span class="sd">    Example methods: Linear, Kernel Ridge, Gaussian Process Regression etc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor&quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Residualize&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+
+<div class="viewcode-block" id="Residualize.fit"><a class="viewcode-back" href="../API.html#base.Residualize.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">X</span><span class="p">,</span>  <span class="c1"># variable names chosen to correspond to sklearn when possible</span>
+            <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># y is the confound variables here, not the target!</span>
+            <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># which itself must return self</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_features</span><span class="p">,</span> <span class="n">confounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Actual fit method&quot;&quot;&quot;</span>
+
+        <span class="n">in_features</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">in_features</span><span class="p">)</span>
+        <span class="n">confounds</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">confounds</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># turning it into 2D, in case if its just a column</span>
+        <span class="k">if</span> <span class="n">confounds</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">confounds</span> <span class="o">=</span> <span class="n">confounds</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">check_consistent_length</span><span class="p">(</span><span class="n">in_features</span><span class="p">,</span> <span class="n">confounds</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;X (features) and y (confounds) &#39;</span>
+                             <span class="s1">&#39;must have the same number of rows/samplets!&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span> <span class="o">=</span> <span class="n">in_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">regr_model</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">get_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">))</span>
+        <span class="n">regr_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">confounds</span><span class="p">,</span> <span class="n">in_features</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_</span> <span class="o">=</span> <span class="n">regr_model</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="Residualize.transform"><a class="viewcode-back" href="../API.html#base.Residualize.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_features</span><span class="p">,</span> <span class="n">test_confounds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Actual deconfounding of the test features&quot;&quot;&quot;</span>
+
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;model_&#39;</span><span class="p">,</span> <span class="s1">&#39;n_features_&#39;</span><span class="p">)</span>
+        <span class="n">test_features</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">test_features</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">test_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;number of features must be </span><span class="si">{}</span><span class="s1">. Given </span><span class="si">{}</span><span class="s1">&#39;</span>
+                             <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span><span class="p">,</span> <span class="n">test_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="n">test_confounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># during estimator checks</span>
+            <span class="k">return</span> <span class="n">test_features</span>  <span class="c1"># do nothing</span>
+
+        <span class="n">test_confounds</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">test_confounds</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">check_consistent_length</span><span class="p">(</span><span class="n">test_features</span><span class="p">,</span> <span class="n">test_confounds</span><span class="p">)</span>
+
+        <span class="c1"># test features as can be explained/predicted by their covariates</span>
+        <span class="n">test_feat_predicted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">test_confounds</span><span class="p">)</span>
+        <span class="n">residuals</span> <span class="o">=</span> <span class="n">test_features</span> <span class="o">-</span> <span class="n">test_feat_predicted</span>
+
+        <span class="k">return</span> <span class="n">residuals</span></div>
+
+
+<span class="k">class</span> <span class="nc">ResidualizeTarget</span><span class="p">(</span><span class="n">BaseDeconfound</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deconfounding estimator class that residualizes the input features by</span>
+<span class="sd">    subtracting the contributions from the confound variables</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor&quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;ResidualizeTarget&#39;</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="DummyDeconfounding"><a class="viewcode-back" href="../API.html#base.DummyDeconfounding">[docs]</a><span class="k">class</span> <span class="nc">DummyDeconfounding</span><span class="p">(</span><span class="n">BaseDeconfound</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A do-nothing dummy method, to serve as a reference for methodological comparisons</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor&quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;DummyPassThrough&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DummyDeconfounding.fit"><a class="viewcode-back" href="../API.html#base.DummyDeconfounding.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A do-nothing fit.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix}, shape (n_samples, n_features)</span>
+<span class="sd">            The training input samples.</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Array of covariates, shape (n_samples, n_covariates)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : object</span>
+<span class="sd">            Returns self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="DummyDeconfounding.transform"><a class="viewcode-back" href="../API.html#base.DummyDeconfounding.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">         A do-nothing transform.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse-matrix}, shape (n_samples, n_features)</span>
+<span class="sd">            The input samples.</span>
+
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Array of covariates, shape (n_samples, n_covariates)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        X_transformed : array, shape (n_samples, n_features)</span>
+<span class="sd">            Same as the input ``X``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;n_features_&#39;</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_features_</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;num_features differ between fit and transform!&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">X</span>  <span class="c1"># dummy pass-through, doing nothing except for shape checks.</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Pradeep Reddy Raamana.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

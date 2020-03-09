@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>API &#8212; confounds 0.1.1+0.g739ec48.dirty documentation</title>
+    <link rel="stylesheet" href="_static/pd.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Usage" href="usage.html" />
+    <script type="text/javascript" src="_static/pd.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  </head><body>
+    <div id="header">
+        <h1>confounds 0.1.1+0.g739ec48.dirty documentation</h1>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+        <ul>
+            <li class="nav-item nav-item-0"><a href="index.html">confounds 0.1.1+0.g739ec48.dirty documentation</a> &#187;
+            </li>
+        </ul>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<p>Some simple/useful examples are available at <a class="reference internal" href="usage.html"><span class="doc">Usage</span></a>, using the following API:</p>
+<span class="target" id="module-base"></span><div class="section" id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The second argument to the <code class="docutils literal notranslate"><span class="pre">.fit()</span></code> and <code class="docutils literal notranslate"><span class="pre">.transform()</span></code> methods of the
+deconfounding classes in this library are the confounds/covariate
+variables/values, not <code class="docutils literal notranslate"><span class="pre">y</span></code> (target values i.e. class labels or dependent
+variable to be predicted)</p>
+</div>
+</div>
+<div class="section" id="terminology">
+<h2>Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>The term <code class="docutils literal notranslate"><span class="pre">samplet</span></code> is used to refer to one row referring to single subject in sample feature matrix X (size Nxp)</p></li>
+<li><p>The terms covariate and confound are used interchangeably, but know that different applications and domains may have distinctive definitions for them.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="base.Residualize">
+<em class="property">class </em><code class="sig-prename descclassname">base.</code><code class="sig-name descname">Residualize</code><span class="sig-paren">(</span><em class="sig-param">model='linear'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base.html#Residualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.Residualize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">base.BaseDeconfound</span></code></p>
+<p>Deconfounding estimator class that residualizes the input features by
+subtracting the contributions from the confound variables</p>
+<p>Example methods: Linear, Kernel Ridge, Gaussian Process Regression etc</p>
+<dl class="method">
+<dt id="base.Residualize.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">X</em>, <em class="sig-param">y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base.html#Residualize.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.Residualize.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder to pass sklearn conventions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="base.Residualize.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">X</em>, <em class="sig-param">y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base.html#Residualize.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.Residualize.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder to pass sklearn conventions</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="base.Augment">
+<em class="property">class </em><code class="sig-prename descclassname">base.</code><code class="sig-name descname">Augment</code><a class="reference internal" href="_modules/base.html#Augment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.Augment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">base.BaseDeconfound</span></code></p>
+<p>Deconfounding estimator class  that simply augments/concatenates the confounding
+variables to input features prior to prediction.</p>
+<dl class="method">
+<dt id="base.Augment.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">X</em>, <em class="sig-param">y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base.html#Augment.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.Augment.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder to pass sklearn conventions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="base.Augment.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">X</em>, <em class="sig-param">y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base.html#Augment.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.Augment.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Placeholder to pass sklearn conventions</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="base.DummyDeconfounding">
+<em class="property">class </em><code class="sig-prename descclassname">base.</code><code class="sig-name descname">DummyDeconfounding</code><a class="reference internal" href="_modules/base.html#DummyDeconfounding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.DummyDeconfounding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">base.BaseDeconfound</span></code></p>
+<p>A do-nothing dummy method, to serve as a reference for methodological comparisons</p>
+<dl class="method">
+<dt id="base.DummyDeconfounding.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">X</em>, <em class="sig-param">y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base.html#DummyDeconfounding.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.DummyDeconfounding.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>A do-nothing fit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>X</strong><span class="classifier">{array-like, sparse matrix}, shape (n_samples, n_features)</span></dt><dd><p>The training input samples.</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">ndarray</span></dt><dd><p>Array of covariates, shape (n_samples, n_covariates)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>self</strong><span class="classifier">object</span></dt><dd><p>Returns self.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="base.DummyDeconfounding.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">X</em>, <em class="sig-param">y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base.html#DummyDeconfounding.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.DummyDeconfounding.transform" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>A do-nothing transform.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>X</strong><span class="classifier">{array-like, sparse-matrix}, shape (n_samples, n_features)</span></dt><dd><p>The input samples.</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">ndarray</span></dt><dd><p>Array of covariates, shape (n_samples, n_covariates)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>X_transformed</strong><span class="classifier">array, shape (n_samples, n_features)</span></dt><dd><p>Same as the input <code class="docutils literal notranslate"><span class="pre">X</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="base.ConfoundsException">
+<em class="property">exception </em><code class="sig-prename descclassname">base.</code><code class="sig-name descname">ConfoundsException</code><a class="reference internal" href="_modules/base.html#ConfoundsException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base.ConfoundsException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseException</span></code></p>
+<p>Custom exception to indicate confounds-library specific issues.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API</a><ul>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#terminology">Terminology</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="usage.html"
+                        title="previous chapter">Usage</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="contributing.html"
+                        title="next chapter">Contributing</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/API.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Pradeep Reddy Raamana.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>
