@@ -3,6 +3,9 @@
 Conquering confounds and covariates in machine learning
 ------------------------------------------------------------
 
+.. image:: https://zenodo.org/badge/197298208.svg
+   :target: https://zenodo.org/badge/latestdoi/197298208
+
 .. image:: https://img.shields.io/pypi/v/confounds.svg
         :target: https://pypi.python.org/pypi/confounds
 
@@ -88,3 +91,12 @@ Contributors are most welcome.
 
 
 ``confounds`` package is beta and **under development**.
+
+
+Citation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you found any parts of ``confounds`` to be useful in your research, directly or indirectly, **I'd appreciate if you could cite** the following:
+
+ - Pradeep Reddy Raamana (2020), "Conquering confounds and covariates in machine learning with the python library confounds", Version 0.1.1, Zenodo. http://doi.org/10.5281/zenodo.3701528
+
