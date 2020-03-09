@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
 
 """
-Conquering confounds and covariates in machine learning
+
+Notes
+~~~~~~
+
+.. note::
+
+    The second argument to the ``.fit()`` and ``.transform()`` methods of the
+    deconfounding classes in this library are the confounds/covariate
+    variables/values, not ``y`` (target values i.e. class labels or dependent
+    variable to be predicted)
 
 
-Definition of confound from Rao et al., 2017:
-"For a given data sample D, a confound is a variable that affects the image data
-and whose sample association with the target variable is not representative of the
-population-of-interest. The sample D is then said to be biased (by the confound),
-with respect to the population-of-interest.
+Terminology
+~~~~~~~~~~~~
 
-Note that if a variable affects the image data but its association with the target
-variable is representative of the population-of-interest, we would then consider
-the sample to be unbiased, and the variable is not a true confound."
+ - The term ``samplet`` is used to refer to one row referring to single subject in sample feature matrix X (size Nxp)
+ - The terms covariate and confound are used interchangeably, but know that different applications and domains may have distinctive definitions for them.
 
 
-Other definitions used:
-
-samplet: one row referring to single subject in sample feature matrix X (size Nxp )
+Classes
+~~~~~~~~
 
 """
 

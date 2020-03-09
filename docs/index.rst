@@ -8,9 +8,9 @@ Welcome to confounds's documentation!
    readme
    installation
    usage
-   modules
+   API
    contributing
-   history
+   citation
 
 Indices and tables
 ==================

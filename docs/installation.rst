@@ -12,7 +12,7 @@ To install confounds, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install confounds
+    $ pip install -U confounds
 
 This is the preferred method to install confounds, as it will always install the most recent stable release.
 
@@ -23,8 +23,8 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 
 
-From sources
-------------
+From sources - recommended for contributors and developers
+------------------------------------------------------------------------
 
 The sources for confounds can be downloaded from the `Github repo`_.
 
