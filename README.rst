@@ -12,11 +12,6 @@ Conquering confounds and covariates in machine learning
 .. image:: https://img.shields.io/travis/raamana/confounds.svg
         :target: https://travis-ci.org/raamana/confounds
 
-.. image:: https://readthedocs.org/projects/confounds/badge/?version=latest
-        :target: https://confounds.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-
-
 
 Vision / Goals
 ~~~~~~~~~~~~~~~
@@ -26,6 +21,12 @@ The high-level goals of this package is to develop high-quality library to conqu
  1. visualize and establish the presence of confounds (e.g. quantifying confound-to-target relationships),
  2. offer solutions to handle them appropriately via correction or removal etc, and
  3. analyze the effect of the deconfounding methods in the processed data (e.g. ability to check if they worked at all, or if they introduced new or unwanted biases etc).
+
+
+Documentation
+~~~~~~~~~~~~~~
+
+https://raamana.github.io/confounds
 
 
 Methods
@@ -42,61 +43,17 @@ To be added:
  - Stratify (sub- or resampling procedures to minimize confounding)
  - Utilities (Goals 1 and 3)
 
-Installation
+
+Citation
 ~~~~~~~~~~~~~~
 
- - Python 3 is required, and upgrade pip if possible: ``python3 -m pip install --upgrade pip``
- - Install it easily with ``pip install -U confounds``
- - If you want to contribute, fork this repo, clone it on your machine, improve it and send pull requests. Thanks.
+If you found any parts of ``confounds`` to be useful in your research, directly or indirectly, **I'd appreciate if you could cite** the following:
 
-Example usage
-~~~~~~~~~~~~~~
-
-Let's say the features from your dataset are contained in ``X`` (N x p), and the confounds/covariates for those samples stored in ``C`` (of size N x c), with X and C having row-wise correspondence for each samplet.
-
-X is often split into ``train_X`` and ``test_X`` inside the cross-validation loop, and the corresponding splits for C are ``train_C`` and ``test_C``. Then, the estimator classes (e.g. ``Residualize()``) from ``confounds`` library are used in the following **easy** manner:
-
-
-.. code-block:: python
-
-        from confounds import Residualize, Augment, DummyDeconfounding
-        
-        resid = Residualize()          # instantiation
-        # NOTE the second argument to deconfounding instance are confounds/covariate variables, not y (targets)
-        resid.fit(train_X, train_C)    # training on X and C
-
-        # NOTE the second argument to the instance are confounds/covariate variables, not y (targets)
-        deconf_train_X = resid.transform(train_X, train_C)     # deconfounding X, N
-        deconf_test_X  = resid.transform(test_X , test_C)
-
-
-That's it.
-
-You can also replace ``Residualize()`` with ``Augment()`` (which simply concatenates the covariates values to X horizontally) as well as ``DummyDeconfounding()`` which does nothing but return X back.
-
-
-
-.. note::
-
-    Only ``Residualize(model='linear')``, ``Augment()`` and ``DummyDeconfounding()`` are considered usable. The rest are yet to be developed, and subject to change without notice.
-
-
-.. warning::
-
-    Scikit-learn does not offer the ability to pass in covariates (or any other variables) besides ``X`` and ``y`` to their estimators. So, although classes from this ``confounds`` library act as scikit-learn estimators (passing estimator checks), **they should NOT be used in a pipeline** e.g. to pass it on ``GridSearchCV`` or similar convenience classes for optimization purposes.
+ - Pradeep Reddy Raamana (2020), "Conquering confounds and covariates in machine learning with the python library confounds", Version 0.1.1, Zenodo. http://doi.org/10.5281/zenodo.3701528
 
 
 Contributors are most welcome.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-``confounds`` package is beta and **under development**.
-
-
-Citation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you found any parts of ``confounds`` to be useful in your research, directly or indirectly, **I'd appreciate if you could cite** the following:
-
- - Pradeep Reddy Raamana (2020), "Conquering confounds and covariates in machine learning with the python library confounds", Version 0.1.1, Zenodo. http://doi.org/10.5281/zenodo.3701528
+``confounds`` package is beta and **under development**. Your contributions of all kinds will be greatly appreciated. Learn how to contributes here at :doc:`contributing`.
 
