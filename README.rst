@@ -3,6 +3,8 @@
 Conquering confounds and covariates in machine learning
 ------------------------------------------------------------
 
+.. image:: https://github.com/raamana/confounds/blob/master/confounds_card.jpg
+
 .. image:: https://zenodo.org/badge/197298208.svg
    :target: https://zenodo.org/badge/latestdoi/197298208
 
