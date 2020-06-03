@@ -46,13 +46,13 @@
 <h2>Example usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h2>
 <p>Let’s say the features from your dataset are contained in <code class="docutils literal notranslate"><span class="pre">X</span></code> (N x p), and the confounds/covariates for those samples stored in <code class="docutils literal notranslate"><span class="pre">C</span></code> (of size N x c), with X and C having row-wise correspondence for each samplet.</p>
 <p>X is often split into <code class="docutils literal notranslate"><span class="pre">train_X</span></code> and <code class="docutils literal notranslate"><span class="pre">test_X</span></code> inside the cross-validation loop, and the corresponding splits for C are <code class="docutils literal notranslate"><span class="pre">train_C</span></code> and <code class="docutils literal notranslate"><span class="pre">test_C</span></code>. Then, the estimator classes (e.g. <code class="docutils literal notranslate"><span class="pre">Residualize()</span></code>) from <code class="docutils literal notranslate"><span class="pre">confounds</span></code> library are used in the following <strong>easy</strong> manner:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">resid</span> <span class="o">=</span> <span class="n">Residualize</span><span class="p">()</span>          <span class="c1"># instantiation</span>
-<span class="c1"># NOTE the second argument to deconfounding instance are confounds/covariate variables, not y (targets)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">resid</span> <span class="o">=</span> <span class="n">Residualize</span><span class="p">()</span>          <span class="c1"># instantiation. You could choose different models</span>
+<span class="c1"># NOTE 2nd argument to transform method are confounding variables, not target values</span>
 <span class="n">resid</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span> <span class="n">train_C</span><span class="p">)</span>    <span class="c1"># training on X and C</span>
 
-<span class="c1"># NOTE the second argument to the instance are confounds/covariate variables, not y (targets)</span>
-<span class="n">deconf_train_X</span> <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span> <span class="n">train_C</span><span class="p">)</span>     <span class="c1"># deconfounding X, N</span>
-<span class="n">deconf_test_X</span>  <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test_X</span> <span class="p">,</span> <span class="n">test_C</span><span class="p">)</span>
+<span class="c1"># NOTE 2nd argument to transform method are confounding variables, not target values</span>
+<span class="n">deconf_train_X</span> <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span> <span class="n">train_C</span><span class="p">)</span>   <span class="c1"># deconfounding train_X</span>
+<span class="n">deconf_test_X</span>  <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test_X</span> <span class="p">,</span> <span class="n">test_C</span><span class="p">)</span>    <span class="c1">#      and then test_X</span>
 </pre></div>
 </div>
 <p>That’s it.</p>
@@ -60,9 +60,10 @@
 <p>Here is an broader example showing how the deconfouding classes can be used in a full cross-validation loop:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="nb">iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_CV_iters</span><span class="p">):</span>
 
-    <span class="n">train_data</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">train_targets</span><span class="p">,</span> <span class="n">original_test_targets</span> <span class="o">=</span> <span class="n">split_dataset</span><span class="p">(</span><span class="n">your_dataset</span><span class="p">,</span> <span class="nb">iter</span><span class="p">)</span>
-    <span class="c1"># split_dataset() could be train_test_split from sklearn for simple flat numpy-array based feature set</span>
-    <span class="c1">#   (which I discourage in favour of pyradigm)</span>
+    <span class="n">train_data</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">train_targets</span><span class="p">,</span> <span class="n">original_test_targets</span> <span class="o">=</span> <span class="n">split_ds</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="nb">iter</span><span class="p">)</span>
+    <span class="c1"># split_ds() could be as simple as train_test_split() from sklearn, when you are</span>
+    <span class="c1">#  using a simple flat numerical-only numpy-array based feature set.</span>
+    <span class="c1">#  I discourage ndarray in favour of pyradigm, ideal for linked tables of mixed-data-types</span>
     <span class="n">train_X</span><span class="p">,</span> <span class="n">train_C</span><span class="p">,</span> <span class="n">test_X</span> <span class="p">,</span> <span class="n">test_C</span> <span class="o">=</span> <span class="n">get_covariates</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">test_data</span><span class="p">)</span>
 
     <span class="n">resid</span> <span class="o">=</span> <span class="n">Residualize</span><span class="p">()</span>
@@ -70,6 +71,7 @@
     <span class="c1"># NOTE 2nd argument here are covariates, not y (targets)</span>
     <span class="n">deconf_train_X</span> <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">train_X</span><span class="p">,</span> <span class="n">train_C</span><span class="p">)</span>
     <span class="n">deconf_test_X</span>  <span class="o">=</span> <span class="n">resid</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">test_X</span> <span class="p">,</span> <span class="n">test_C</span><span class="p">)</span>
+    <span class="c1"># make sure you transform both test/train sets with the same estimator!</span>
 
     <span class="c1"># wrapper containing calls to GridSearchCV() etc</span>
     <span class="c1"># pipeline here is the predictive model, sequence of sklearn estimators</span>
@@ -81,15 +83,15 @@
 <p>If the above example is confusing or you disagree with it, please <a class="reference external" href="https://github.com/raamana/confounds/issues/new">let me know</a>. Appreciate your help in improving the methods and documentation. Thanks much!</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Only <code class="docutils literal notranslate"><span class="pre">Residualize(model='linear')</span></code>, <code class="docutils literal notranslate"><span class="pre">Augment()</span></code> and <code class="docutils literal notranslate"><span class="pre">DummyDeconfounding()</span></code> are considered usable. The rest are yet to be developed, and subject to change without notice.</p>
+<p>Only <code class="docutils literal notranslate"><span class="pre">Residualize(model='linear')</span></code>, <code class="docutils literal notranslate"><span class="pre">Augment()</span></code> and <code class="docutils literal notranslate"><span class="pre">DummyDeconfounding()</span></code> methods are considered usable and stable. The rest are yet to be developed, and subject to change without notice.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Scikit-learn does not offer the ability to pass in covariates (or any other variables) besides <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> to their estimators. So, although classes from this <code class="docutils literal notranslate"><span class="pre">confounds</span></code> library act as scikit-learn estimators (passing estimator checks), <strong>they should NOT be used in a pipeline</strong> e.g. to pass it on <code class="docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or similar convenience classes for optimization purposes.</p>
+<p>Scikit-learn does not offer the ability to pass in covariates (or any other variables) besides <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> to their estimators. So, although classes from this <code class="docutils literal notranslate"><span class="pre">confounds</span></code> library act as scikit-learn estimators (passing estimator checks), <strong>they should NOT be used in a scikit-learn pipeline interface</strong> e.g. to pass it on <code class="docutils literal notranslate"><span class="pre">GridSearchCV</span></code> or similar convenience classes for optimization purposes.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>I highly recommend using the <code class="docutils literal notranslate"><span class="pre">pyradigm</span></code> data structure to manage the features and covariates of a given dataset, using the classes <code class="docutils literal notranslate"><span class="pre">ClassificationDataset</span></code> and <code class="docutils literal notranslate"><span class="pre">RegressionDataset</span></code>. The development version of <code class="docutils literal notranslate"><span class="pre">pyradigm</span></code> provides the <code class="docutils literal notranslate"><span class="pre">MultiDatasetClassify</span></code> and <code class="docutils literal notranslate"><span class="pre">MultiDatasetRegress</span></code> classes that would make this data management even easier when engaging in comparisons across multiple modalities/feature-sets on the same sample (same subjects with same covariates).</p>
+<p>I highly recommend using the <code class="docutils literal notranslate"><span class="pre">pyradigm</span></code> data structure to manage the features and covariates of a given dataset, using the classes <code class="docutils literal notranslate"><span class="pre">ClassificationDataset</span></code> and <code class="docutils literal notranslate"><span class="pre">RegressionDataset</span></code>. The latest version of <code class="docutils literal notranslate"><span class="pre">pyradigm</span></code> also provides the <code class="docutils literal notranslate"><span class="pre">MultiDatasetClassify</span></code> and <code class="docutils literal notranslate"><span class="pre">MultiDatasetRegress</span></code> classes that would make this data management even easier when engaging in comparisons across multiple modalities/feature-sets on the same sample (same subjects with same covariates). Check it out at this URL <a class="reference external" href="https://raamana.github.io/pyradigm/">https://raamana.github.io/pyradigm/</a>.</p>
 </div>
 </div>
 </div>

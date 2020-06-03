@@ -39,30 +39,26 @@
 <h1>Source code for base</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">Notes</span>
-<span class="sd">~~~~~~</span>
-
-<span class="sd">.. note::</span>
-
-<span class="sd">    The second argument to the ``.fit()`` and ``.transform()`` methods of the</span>
-<span class="sd">    deconfounding classes in this library are the confounds/covariate</span>
-<span class="sd">    variables/values, not ``y`` (target values i.e. class labels or dependent</span>
-<span class="sd">    variable to be predicted)</span>
+<span class="n">docopt_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Conquering confounds and covariates in machine learning</span>
 
 
-<span class="sd">Terminology</span>
-<span class="sd">~~~~~~~~~~~~</span>
+<span class="s2">Definition of confound from Rao et al., 2017:</span>
+<span class="s2">&quot;For a given data sample D, a confound is a variable that affects the image data</span>
+<span class="s2">and whose sample association with the target variable is not representative of the</span>
+<span class="s2">population-of-interest. The sample D is then said to be biased (by the confound),</span>
+<span class="s2">with respect to the population-of-interest.</span>
 
-<span class="sd"> - The term ``samplet`` is used to refer to one row referring to single subject in sample feature matrix X (size Nxp)</span>
-<span class="sd"> - The terms covariate and confound are used interchangeably, but know that different applications and domains may have distinctive definitions for them.</span>
+<span class="s2">Note that if a variable affects the image data but its association with the target</span>
+<span class="s2">variable is representative of the population-of-interest, we would then consider</span>
+<span class="s2">the sample to be unbiased, and the variable is not a true confound.&quot;</span>
 
 
-<span class="sd">Classes</span>
-<span class="sd">~~~~~~~~</span>
+<span class="s2">Other definitions used:</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="s2">samplet: one row referring to single subject in sample feature matrix X (size Nxp )</span>
+
+<span class="s2">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABC</span>
 
@@ -123,7 +119,25 @@
             <span class="n">X</span><span class="p">,</span>  <span class="c1"># variable names chosen to correspond to sklearn when possible</span>
             <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># y is the confound variables here, not the target!</span>
             <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Learns the dimensionality of confounding variables to be augmented.</span>
+
+<span class="sd">        Variable names X, y had to be used to pass sklearn conventions. y here</span>
+<span class="sd">        refers to the confound variables, and NOT the target. See examples in docs!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix}, shape (n_samples, n_features)</span>
+<span class="sd">            The training input samples.</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Array of covariates, shape (n_samples, n_covariates)</span>
+<span class="sd">            This does not refer to target as is typical in scikit-learn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : object</span>
+<span class="sd">            Returns self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># which itself must return self</span></div>
 
@@ -150,7 +164,26 @@
 
 
 <div class="viewcode-block" id="Augment.transform"><a class="viewcode-back" href="../API.html#base.Augment.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transforms the given feature set by augmenting the confounding variables.</span>
+
+<span class="sd">        Variable names X, y had to be used to pass sklearn conventions. y here</span>
+<span class="sd">        refers to the confound variables for the [test] to be transformed, and NOT</span>
+<span class="sd">        their target values. See examples in docs!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix}, shape (n_samples, n_features)</span>
+<span class="sd">            The training input samples.</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Array of covariates, shape (n_samples, n_covariates)</span>
+<span class="sd">            This does not refer to target as is typical in scikit-learn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : object</span>
+<span class="sd">            Returns self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
 
@@ -195,7 +228,25 @@
             <span class="n">X</span><span class="p">,</span>  <span class="c1"># variable names chosen to correspond to sklearn when possible</span>
             <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># y is the confound variables here, not the target!</span>
             <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fits the residualizing model (estimates the contributions of confounding</span>
+<span class="sd">        variables (y) to the given [training] feature set X.  Variable names X,</span>
+<span class="sd">        y had to be used to pass sklearn conventions. y here refers to the</span>
+<span class="sd">        confound variables, and NOT the target. See examples in docs!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix}, shape (n_samples, n_features)</span>
+<span class="sd">            The training input samples.</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Array of covariates, shape (n_samples, n_covariates)</span>
+<span class="sd">            This does not refer to target as is typical in scikit-learn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : object</span>
+<span class="sd">            Returns self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># which itself must return self</span></div>
 
@@ -226,7 +277,27 @@
 
 
 <div class="viewcode-block" id="Residualize.transform"><a class="viewcode-back" href="../API.html#base.Residualize.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Placeholder to pass sklearn conventions&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transforms the given feature set by residualizing the [test] features</span>
+<span class="sd">        by subtracting the contributions of their confounding variables.</span>
+
+<span class="sd">        Variable names X, y had to be used to pass scikit-learn conventions. y here</span>
+<span class="sd">        refers to the confound variables for the [test] to be transformed,</span>
+<span class="sd">        and NOT their target values. See examples in docs!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : {array-like, sparse matrix}, shape (n_samples, n_features)</span>
+<span class="sd">            The training input samples.</span>
+<span class="sd">        y : ndarray</span>
+<span class="sd">            Array of covariates, shape (n_samples, n_covariates)</span>
+<span class="sd">            This does not refer to target as is typical in scikit-learn.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self : object</span>
+<span class="sd">            Returns self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
 
@@ -283,7 +354,7 @@
 
 <div class="viewcode-block" id="DummyDeconfounding.fit"><a class="viewcode-back" href="../API.html#base.DummyDeconfounding.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        A do-nothing fit.</span>
+<span class="sd">        A do-nothing fit method.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -306,7 +377,7 @@
 
 <div class="viewcode-block" id="DummyDeconfounding.transform"><a class="viewcode-back" href="../API.html#base.DummyDeconfounding.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">         A do-nothing transform.</span>
+<span class="sd">         A do-nothing transform method.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
