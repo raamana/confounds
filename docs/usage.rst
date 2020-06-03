@@ -19,13 +19,13 @@ X is often split into ``train_X`` and ``test_X`` inside the cross-validation loo
 
 .. code-block:: python
 
-        resid = Residualize()          # instantiation
-        # NOTE the second argument to deconfounding instance are confounds/covariate variables, not y (targets)
+        resid = Residualize()          # instantiation. You could choose different models
+        # NOTE 2nd argument to transform method are confounding variables, not target values
         resid.fit(train_X, train_C)    # training on X and C
 
-        # NOTE the second argument to the instance are confounds/covariate variables, not y (targets)
-        deconf_train_X = resid.transform(train_X, train_C)     # deconfounding X, N
-        deconf_test_X  = resid.transform(test_X , test_C)
+        # NOTE 2nd argument to transform method are confounding variables, not target values
+        deconf_train_X = resid.transform(train_X, train_C)   # deconfounding train_X
+        deconf_test_X  = resid.transform(test_X , test_C)    #      and then test_X
 
 
 That's it.
@@ -38,9 +38,10 @@ Here is an broader example showing how the deconfouding classes can be used in a
 
     for iter in range(num_CV_iters):
 
-        train_data, test_data, train_targets, original_test_targets = split_dataset(your_dataset, iter)
-        # split_dataset() could be train_test_split from sklearn for simple flat numpy-array based feature set
-        #   (which I discourage in favour of pyradigm)
+        train_data, test_data, train_targets, original_test_targets = split_ds(dataset, iter)
+        # split_ds() could be as simple as train_test_split() from sklearn
+        #  when you are using a simple flat numerical-only numpy-array based feature set
+        #  which I discourage in favour of pyradigm, ideal for linked tables of mixed-data-types
         train_X, train_C, test_X , test_C = get_covariates(train_data, test_data)
 
         resid = Residualize()
@@ -69,4 +70,4 @@ If the above example is confusing or you disagree with it, please `let me know <
 
 .. note::
 
-  I highly recommend using the ``pyradigm`` data structure to manage the features and covariates of a given dataset, using the classes ``ClassificationDataset`` and ``RegressionDataset``. The development version of ``pyradigm`` provides the ``MultiDatasetClassify`` and ``MultiDatasetRegress`` classes that would make this data management even easier when engaging in comparisons across multiple modalities/feature-sets on the same sample (same subjects with same covariates).
+  I highly recommend using the ``pyradigm`` data structure to manage the features and covariates of a given dataset, using the classes ``ClassificationDataset`` and ``RegressionDataset``. The latest version of ``pyradigm`` also provides the ``MultiDatasetClassify`` and ``MultiDatasetRegress`` classes that would make this data management even easier when engaging in comparisons across multiple modalities/feature-sets on the same sample (same subjects with same covariates). Check it out at https://raamana.github.io/pyradigm/.
