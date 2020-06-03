@@ -15,6 +15,8 @@ Library exceptions:
  - ``ConfoundsException``
 
 
+-----
+
 .. automodule:: base
    :members: Residualize, Augment, DummyDeconfounding, ConfoundsException
    :show-inheritance:

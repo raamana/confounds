@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
+docopt_string = """
 Conquering confounds and covariates in machine learning
 
 
