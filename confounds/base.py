@@ -1,27 +1,23 @@
 # -*- coding: utf-8 -*-
 
 """
-
-Notes
-~~~~~~
-
-.. note::
-
-    The second argument to the ``.fit()`` and ``.transform()`` methods of the
-    deconfounding classes in this library are the confounds/covariate
-    variables/values, not ``y`` (target values i.e. class labels or dependent
-    variable to be predicted)
+Conquering confounds and covariates in machine learning
 
 
-Terminology
-~~~~~~~~~~~~
+Definition of confound from Rao et al., 2017:
+"For a given data sample D, a confound is a variable that affects the image data
+and whose sample association with the target variable is not representative of the
+population-of-interest. The sample D is then said to be biased (by the confound),
+with respect to the population-of-interest.
 
- - The term ``samplet`` is used to refer to one row referring to single subject in sample feature matrix X (size Nxp)
- - The terms covariate and confound are used interchangeably, but know that different applications and domains may have distinctive definitions for them.
+Note that if a variable affects the image data but its association with the target
+variable is representative of the population-of-interest, we would then consider
+the sample to be unbiased, and the variable is not a true confound."
 
 
-Classes
-~~~~~~~~
+Other definitions used:
+
+samplet: one row referring to single subject in sample feature matrix X (size Nxp )
 
 """
 
@@ -84,7 +80,25 @@ class Augment(BaseDeconfound):
             X,  # variable names chosen to correspond to sklearn when possible
             y=None,  # y is the confound variables here, not the target!
             ):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Learns the dimensionality of confounding variables to be augmented.
+
+        Variable names X, y had to be used to pass sklearn conventions. y here
+        refers to the confound variables, and NOT the target. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._fit(X, y)  # which itself must return self
 
@@ -111,7 +125,26 @@ class Augment(BaseDeconfound):
 
 
     def transform(self, X, y=None):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Transforms the given feature set by augmenting the confounding variables.
+
+        Variable names X, y had to be used to pass sklearn conventions. y here
+        refers to the confound variables for the [test] to be transformed, and NOT
+        their target values. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._transform(X, y)
 
@@ -156,7 +189,25 @@ class Residualize(BaseDeconfound):
             X,  # variable names chosen to correspond to sklearn when possible
             y=None,  # y is the confound variables here, not the target!
             ):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Fits the residualizing model (estimates the contributions of confounding
+        variables (y) to the given [training] feature set X.  Variable names X,
+        y had to be used to pass sklearn conventions. y here refers to the
+        confound variables, and NOT the target. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._fit(X, y)  # which itself must return self
 
@@ -187,7 +238,27 @@ class Residualize(BaseDeconfound):
 
 
     def transform(self, X, y=None):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Transforms the given feature set by residualizing the [test] features
+        by subtracting the contributions of their confounding variables.
+
+        Variable names X, y had to be used to pass scikit-learn conventions. y here
+        refers to the confound variables for the [test] to be transformed,
+        and NOT their target values. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._transform(X, y)
 
@@ -244,7 +315,7 @@ class DummyDeconfounding(BaseDeconfound):
 
     def fit(self, X, y=None):
         """
-        A do-nothing fit.
+        A do-nothing fit method.
 
         Parameters
         ----------
@@ -267,7 +338,7 @@ class DummyDeconfounding(BaseDeconfound):
 
     def transform(self, X, y=None):
         """
-         A do-nothing transform.
+         A do-nothing transform method.
 
         Parameters
         ----------
