@@ -80,7 +80,25 @@ class Augment(BaseDeconfound):
             X,  # variable names chosen to correspond to sklearn when possible
             y=None,  # y is the confound variables here, not the target!
             ):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Learns the dimensionality of confounding variables to be augmented.
+
+        Variable names X, y had to be used to pass sklearn conventions. y here
+        refers to the confound variables, and NOT the target. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._fit(X, y)  # which itself must return self
 
@@ -107,7 +125,26 @@ class Augment(BaseDeconfound):
 
 
     def transform(self, X, y=None):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Transforms the given feature set by augmenting the confounding variables.
+
+        Variable names X, y had to be used to pass sklearn conventions. y here
+        refers to the confound variables for the [test] to be transformed, and NOT
+        their target values. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._transform(X, y)
 
@@ -152,7 +189,25 @@ class Residualize(BaseDeconfound):
             X,  # variable names chosen to correspond to sklearn when possible
             y=None,  # y is the confound variables here, not the target!
             ):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Fits the residualizing model (estimates the contributions of confounding
+        variables (y) to the given [training] feature set X.  Variable names X,
+        y had to be used to pass sklearn conventions. y here refers to the
+        confound variables, and NOT the target. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._fit(X, y)  # which itself must return self
 
@@ -183,7 +238,27 @@ class Residualize(BaseDeconfound):
 
 
     def transform(self, X, y=None):
-        """Placeholder to pass sklearn conventions"""
+        """
+        Transforms the given feature set by residualizing the [test] features
+        by subtracting the contributions of their confounding variables.
+
+        Variable names X, y had to be used to pass scikit-learn conventions. y here
+        refers to the confound variables for the [test] to be transformed,
+        and NOT their target values. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
 
         return self._transform(X, y)
 
@@ -240,7 +315,7 @@ class DummyDeconfounding(BaseDeconfound):
 
     def fit(self, X, y=None):
         """
-        A do-nothing fit.
+        A do-nothing fit method.
 
         Parameters
         ----------
@@ -263,7 +338,7 @@ class DummyDeconfounding(BaseDeconfound):
 
     def transform(self, X, y=None):
         """
-         A do-nothing transform.
+         A do-nothing transform method.
 
         Parameters
         ----------
