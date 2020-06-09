@@ -38,12 +38,17 @@ Available:
 
  - Residualize (e.g. via regression)
  - Augment (include confounds as predictors)
+ - Some utils
 
 To be added:
 
  - Harmonize (correct batch effects via rescaling or normalization etc)
- - Stratify (sub- or resampling procedures to minimize confounding)
- - Utilities (Goals 1 and 3)
+ - Stratify (sub- or re-sampling procedures to minimize confounding)
+ - Full set of utilities (Goals 1 and 3)
+
+In a more schematic way:
+
+.. image:: docs/schematic_method_impl_status.png
 
 
 Citation
