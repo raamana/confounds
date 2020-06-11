@@ -62,5 +62,10 @@ If you found any parts of ``confounds`` to be useful in your research, directly 
 Contributors are most welcome.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``confounds`` package is beta and **under development**. Your contributions of all kinds will be greatly appreciated. Learn how to contributes here at :doc:`contributing`.
+Your contributions of all kinds will be greatly appreciated. Learn how to contributes here at :doc:`contributing`.
+
+All contributors making non-trivial contributions will be
+
+ - publicly and clearly acknowledged on the :doc:`AUTHORS` page
+ - become an author on the [software] paper to be published in the future.
 
