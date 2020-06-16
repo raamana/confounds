@@ -57,7 +57,7 @@ In a more schematic way:
 
 Resources
 ~~~~~~~~~
-any useful resources; papers, presentations, lectures related to the problems of confounding can be found here
+any useful resources; papers, presentations, lectures related to the problems of confounding can be found here https://github.com/raamana/confounds/blob/master/docs/references_confounds.rst
 
 
 
