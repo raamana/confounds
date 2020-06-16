@@ -45,7 +45,6 @@ To be added:
  - Harmonize (correct batch effects via rescaling or normalization etc)
  - Stratify (sub- or re-sampling procedures to minimize confounding)
  - Full set of utilities (Goals 1 and 3)
- later
  - reweight (based on propensity scores as in IPW, or based on confounds)
  - estimate propensity scores
 
