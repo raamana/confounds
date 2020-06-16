@@ -14,6 +14,11 @@ Conquering confounds and covariates in machine learning
 .. image:: https://img.shields.io/travis/raamana/confounds.svg
         :target: https://travis-ci.org/raamana/confounds
 
+Hackathon folks
+~~~~~~~~~~~~~~~~
+
+Those coming here from the hackathon, please go here to learn some ideas for contribution: https://github.com/ohbm/hackathon2020/issues/171
+
 
 Vision / Goals
 ~~~~~~~~~~~~~~~
