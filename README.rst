@@ -51,10 +51,19 @@ To be added:
  - Harmonize (correct batch effects via rescaling or normalization etc)
  - Stratify (sub- or re-sampling procedures to minimize confounding)
  - Full set of utilities (Goals 1 and 3)
+ - reweight (based on propensity scores as in IPW, or based on confounds)
+ - estimate propensity scores
 
 In a more schematic way:
 
 .. image:: docs/schematic_method_impl_status.png
+
+
+
+Resources
+~~~~~~~~~
+any useful resources; papers, presentations, lectures related to the problems of confounding can be found here https://github.com/raamana/confounds/blob/master/docs/references_confounds.rst
+
 
 
 Citation
