@@ -293,12 +293,113 @@ class ResidualizeTarget(BaseDeconfound):
     """
 
 
-    def __init__(self):
+    def __init__(self, model='linear'):
         """Constructor"""
 
         super().__init__(name='ResidualizeTarget')
 
-        raise NotImplementedError()
+        self.model = model
+
+
+    def fit(self,
+            X,  # variable names chosen to correspond to sklearn when possible
+            y=None,  # y is the confound variables here, not the target!
+            ):
+        """
+        Fits the residualizing model (estimates the contributions of confounding
+        variables (y) to the given [training] target set X.  Variable names X,
+        y had to be used to pass sklearn conventions. y here refers to the
+        confound variables. See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_targets)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
+
+        return self._fit(X, y)  # which itself must return self
+
+
+    def _fit(self, in_targets, confounds=None):
+        """Actual fit method"""
+
+        in_targets = check_array(in_targets)
+        confounds = check_array(confounds, ensure_2d=False)
+
+        # turning it into 2D, in case if its just a column
+        if confounds.ndim == 1:
+            confounds = confounds[:, np.newaxis]
+
+        try:
+            check_consistent_length(in_targets, confounds)
+        except:
+            raise ValueError('X (targets) and y (confounds) '
+                             'must have the same number of rows/samplets!')
+
+        self.n_targets_ = in_targets.shape[1]
+
+        regr_model = clone(get_model(self.model))
+        regr_model.fit(confounds, in_targets)
+        self.model_ = regr_model
+
+        return self
+
+
+    def transform(self, X, y=None):
+        """
+        Transforms the given target set by residualizing the [test] targets
+        by subtracting the contributions of their confounding variables.
+
+        Variable names X, y had to be used to pass scikit-learn conventions. y here
+        refers to the confound variables for the [test] to be transformed.
+        See examples in docs!
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape (n_samples, n_targets)
+            The training input samples.
+        y : ndarray
+            Array of covariates, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
+
+        Returns
+        -------
+        self : object
+            Returns self
+        """
+
+        return self._transform(X, y)
+
+
+    def _transform(self, test_targets, test_confounds):
+        """Actual deconfounding of the test targets"""
+
+        check_is_fitted(self, 'model_', 'n_targets_')
+        test_targets = check_array(test_targets, accept_sparse=True)
+
+        if test_targets.shape[1] != self.n_targets_:
+            raise ValueError('number of targets must be {}. Given {}'
+                             ''.format(self.n_targets_, test_targets.shape[1]))
+
+        if test_confounds is None:  # during estimator checks
+            return test_targets  # do nothing
+
+        test_confounds = check_array(test_confounds, ensure_2d=False)
+        check_consistent_length(test_targets, test_confounds)
+
+        # test targets as can be explained/predicted by their covariates
+        test_target_predicted = self.model_.predict(test_confounds)
+        residuals = test_targets - test_target_predicted
+
+        return residuals
 
 
 class DummyDeconfounding(BaseDeconfound):
