@@ -8,7 +8,8 @@ from numpy.testing import assert_almost_equal
 from sklearn.datasets import make_classification, make_sparse_uncorrelated
 from sklearn.utils.estimator_checks import check_estimator
 
-from confounds.base import Augment, DummyDeconfounding, Residualize
+from confounds.base import (Augment, DummyDeconfounding,
+                            Residualize, ResidualizeTarget)
 
 
 def test_estimator_API():
@@ -54,6 +55,27 @@ def test_residualize_linear():
             train_X, train_confounds = splitter_X_confounds(train_all, num_confounds)
 
             resid = Residualize(model='linear')
+            resid.fit(train_X, train_confounds)
+
+            residual_train_X = resid.transform(train_X, train_confounds)
+
+            # residual_train_X and train_confounds must be orthogonal now!
+            assert_almost_equal(residual_train_X.T.dot(train_confounds), 0)
+
+
+def test_residualize_targets_linear():
+    """sanity checks on implementation"""
+
+    min_dim = 6  # atleast 4+ required for make_sparse_uncorrelated
+    max_dim = 100
+    for n_samples in np.random.randint(0, 20, 1):
+        for num_confounds in np.random.randint(min_dim, max_dim, 3):
+            train_all, train_y = make_sparse_uncorrelated(
+                n_samples=n_samples, n_features=min_dim + num_confounds + 1)
+
+            train_X, train_confounds = splitter_X_confounds(train_all, num_confounds)
+
+            resid = ResidualizeTarget(model='linear')
             resid.fit(train_X, train_confounds)
 
             residual_train_X = resid.transform(train_X, train_confounds)
