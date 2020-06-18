@@ -314,7 +314,7 @@ class ResidualizeTarget(BaseDeconfound):
         Parameters
         ----------
         X : {array-like, sparse matrix}, shape (n_samples, n_targets)
-            The training input samples.
+            The targets in training input samples.
         y : ndarray
             Array of covariates, shape (n_samples, n_covariates)
             This does not refer to target as is typical in scikit-learn.
@@ -331,7 +331,7 @@ class ResidualizeTarget(BaseDeconfound):
     def _fit(self, in_targets, confounds=None):
         """Actual fit method"""
 
-        in_targets = check_array(in_targets)
+        in_targets = check_array(in_targets, dtype='numeric')
         confounds = check_array(confounds, ensure_2d=False)
 
         # turning it into 2D, in case if its just a column
@@ -383,7 +383,8 @@ class ResidualizeTarget(BaseDeconfound):
         """Actual deconfounding of the test targets"""
 
         check_is_fitted(self, 'model_', 'n_targets_')
-        test_targets = check_array(test_targets, accept_sparse=True)
+        test_targets = check_array(test_targets, accept_sparse=True,
+                                   dtype='numeric')
 
         if test_targets.shape[1] != self.n_targets_:
             raise ValueError('number of targets must be {}. Given {}'
