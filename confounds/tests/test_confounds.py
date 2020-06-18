@@ -70,18 +70,18 @@ def test_residualize_targets_linear():
     max_dim = 100
     for n_samples in np.random.randint(0, 20, 1):
         for num_confounds in np.random.randint(min_dim, max_dim, 3):
-            train_all, train_y = make_sparse_uncorrelated(
+            train_all, _ = make_sparse_uncorrelated(
                 n_samples=n_samples, n_features=min_dim + num_confounds + 1)
 
-            train_X, train_confounds = splitter_X_confounds(train_all, num_confounds)
+            train_y, train_confounds = splitter_X_confounds(train_all, num_confounds)
 
             resid = ResidualizeTarget(model='linear')
-            resid.fit(train_X, train_confounds)
+            resid.fit(train_y, train_confounds)
 
-            residual_train_X = resid.transform(train_X, train_confounds)
+            residual_train_y = resid.transform(train_y, train_confounds)
 
             # residual_train_X and train_confounds must be orthogonal now!
-            assert_almost_equal(residual_train_X.T.dot(train_confounds), 0)
+            assert_almost_equal(residual_train_y.T.dot(train_confounds), 0)
 
 
 def test_method_does_not_introduce_bias():
