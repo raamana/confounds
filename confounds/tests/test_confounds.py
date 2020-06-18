@@ -68,7 +68,7 @@ def test_residualize_targets_linear():
 
     min_dim = 6  # atleast 4+ required for make_sparse_uncorrelated
     max_dim = 100
-    for n_samples in np.random.randint(0, 20, 1):
+    for n_samples in np.random.randint(0, 20, 1, dtype=int):
         for num_confounds in np.random.randint(min_dim, max_dim, 3):
             train_all, _ = make_sparse_uncorrelated(
                 n_samples=n_samples, n_features=min_dim + num_confounds + 1)
