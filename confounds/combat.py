@@ -1,121 +1,373 @@
-
 import numpy as np
-from sklearn.base import clone
-from sklearn.utils.validation import (check_array, check_consistent_length,
-                                      check_is_fitted)
-from confounds.base import BaseDeconfound
-from confounds.utils import get_model
 
+
+from sklearn.utils.validation import (check_array, check_consistent_length,
+                                      check_is_fitted, column_or_1d)
+from confounds.base import BaseDeconfound
 
 class ComBat(BaseDeconfound):
-    """ComBat method to remove batch effects
-
-    """
+    """ComBat method to remove batch effects."""
 
     def __init__(self,
-                 parametric=False,
-                 adjust_variance=True):
-        """Constructor"""
-
+                 parametric=True,  # Change this to true
+                 adjust_variance=True,
+                 tol=1e-4):
+        """Initiate object."""
         super().__init__(name='ComBat')
+        self.parametric = True  # For the moment just parametric case
+        self.adjust_variance = adjust_variance  # adjust variance or not
+        self.tol = tol
 
     def fit(self,
-            X,  # variable names chosen to correspond to sklearn when possible
-            y=None,  # y is covariates, including batch variable, not the target!
+            in_features,
+            batch,
+            effects_interest=None
             ):
         """
-        Estimates the parameters for the ComBat model, based on the confounding
-        variables (y) to the given [training] feature set X.  Variable names X,
-        y had to be used to pass sklearn conventions. y here refers to the
-        confound variables, and NOT the target. See examples in docs!
+        Fit Combat.
+
+        Estimate parameters in the Combat model. This operation will estimate
+        the scale and location effects in the batches supplied, and the
+        coefficients for the effects to keep after harmonisation.
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        in_features : {array-like, sparse matrix}, shape (n_samples, n_features)
             The training input samples.
-        y : ndarray
-            1D Array of batch identifiers, shape (n_samples, 1)
-            This does not refer to target as is typical in scikit-learn.
-
+        batch : ndarray, shape (n_samples, )
+            Array of batches.
+        effects_interest: ndarray, shape (n_samples, n_features_of_effects),
+            optinal.
+            Array of effects of interest to keep after harmonisation.
+        
         Returns
         -------
-        self : object
-            Returns self
+        self: returns an instance of self.
+
         """
-
-        return self._fit(X, y)  # which itself must return self
-
-
-    def _fit(self, in_features, confounds=None):
-        """Actual fit method"""
-
         in_features = check_array(in_features)
-        confounds = check_array(confounds, ensure_2d=False)
+        batch = column_or_1d(batch)
 
-        # turning it into 2D, in case if its just a column
-        if confounds.ndim == 1:
-            confounds = confounds[:, np.newaxis]
+        if effects_interest is not None:
+            effects_interest = check_array(effects_interest)
+        
+        check_consistent_length([in_features,
+                                 batch,
+                                 effects_interest])
 
-        try:
-            check_consistent_length(in_features, confounds)
-        except:
-            raise ValueError('X (features) and y (confounds) '
-                             'must have the same number of rows/samplets!')
+        return self._fit(Y=in_features,
+                         b=batch,
+                         X=effects_interest
+                         )
 
-        self.n_features_ = in_features.shape[1]
+    def _fit(self, Y, b, X):
+        """Actual fit method."""
+        # extract unique batch categories
+        batches = np.unique(b)
+        self.batches_ = batches
 
-        regr_model = clone(get_model(self.model))
-        regr_model.fit(confounds, in_features)
-        self.model_ = regr_model
+        # Construct one-hot-encoding matrix for batches
+        B = np.column_stack([(b == b_name).astype(int)
+                             for b_name in self.batches_])
+
+        n_samples, n_features = Y.shape
+        n_batch = B.shape[1]
+        sample_per_batch = B.sum(axis=0)
+
+        # Construct design matrix
+        M = B.copy()
+        if isinstance(X, np.ndarray):
+            M = np.column_stack((M, X))
+            end_x = n_batch + X.shape[1]
+        else:
+            end_x = n_batch
+
+        # OLS estimation
+        beta_hat = np.matmul(np.linalg.inv(np.matmul(M.T, M)),
+                             np.matmul(M.T, Y))
+
+        # Find grand mean intercepts, from batch intercepts
+        alpha_hat = np.matmul(sample_per_batch/float(n_samples),
+                              beta_hat[:n_batch, :])
+        self.intercept_ = alpha_hat
+
+        # Find slopes for the  effects of interest
+        coefs_x = beta_hat[n_batch:end_x, :]
+        self.coefs_x_ = coefs_x
+
+        # Compute error between predictions and observed values
+        Y_hat = np.matmul(M, beta_hat)  # fitted observations
+        epsilon = np.mean(((Y - Y_hat)**2), axis=0)
+        self.epsilon_ = epsilon
+
+        # Standardise data
+        Z = Y.copy()
+        Z -= alpha_hat[np.newaxis, :]
+        Z -= np.matmul(M[:, n_batch:end_x], coefs_x)
+        Z /= np.sqrt(epsilon)
+
+        # Find gamma fitted to Standardised data
+        gamma_hat = np.matmul(np.linalg.inv(np.matmul(B.T, B)),
+                              np.matmul(B.T, Z)
+                              )
+        # Mean across input features
+        gamma_bar = np.mean(gamma_hat, axis=1)
+        # Variance across input features
+
+        if n_features > 1:
+            ddof_feat = 1
+        else:
+            raise print("Dataset with just one feature will give NaNs when "
+                        "computing the variance across features. This will "
+                        "be fixed in the feature")
+            # ddof_feat = 0
+        tau_bar_sq = np.var(gamma_hat, axis=1, ddof=ddof_feat)
+        # tau_bar_sq += 1e-10
+
+        # Variance per batch and gen
+        delta_hat_sq = [np.var(Z[B[:, ii] == 1, :], axis=0, ddof=1)
+                        for ii in range(B.shape[1])]
+        delta_hat_sq = np.array(delta_hat_sq)
+
+        # Compute inverse moments
+        lamba_bar = np.apply_along_axis(self._compute_lambda,
+                                        arr=delta_hat_sq,
+                                        axis=1,
+                                        ddof=ddof_feat)
+        thetha_bar = np.apply_along_axis(self._compute_theta,
+                                         arr=delta_hat_sq,
+                                         axis=1,
+                                         ddof=ddof_feat)
+
+        if self.parametric:
+            it_eb = self._it_eb_param
+        else:
+            it_eb = self._it_eb_non_param  # TODO: To be implemented
+
+        gamma_star, delta_sq_star = [], []
+        for ii in range(B.shape[1]):
+            g, d_sq = it_eb(Z[B[:, ii] == 1, :],
+                            gamma_hat[ii, :],
+                            delta_hat_sq[ii, :],
+                            gamma_bar[ii],
+                            tau_bar_sq[ii],
+                            lamba_bar[ii],
+                            thetha_bar[ii],
+                            self.tol
+                            )
+
+            gamma_star.append(g)
+            delta_sq_star.append(d_sq)
+
+        gamma_star = np.array(gamma_star)
+        delta_sq_star = np.array(delta_sq_star)
+
+        self.gamma_ = gamma_star
+        self.delta_sq_ = delta_sq_star
 
         return self
 
-
-    def transform(self, X, y=None):
+    def transform(self,
+                  in_features,
+                  batch,
+                  effects_interest=None):
         """
-        Transforms the given feature set by residualizing the [test] features
-        by subtracting the contributions of their confounding variables.
-
-        Variable names X, y had to be used to pass scikit-learn conventions. y here
-        refers to the confound variables for the [test] to be transformed,
-        and NOT their target values. See examples in docs!
+        Harmonise input features using an already estimated Combat model.
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        in_features : {array-like, sparse matrix}, shape (n_samples, n_features)
             The training input samples.
-        y : ndarray
-            Array of covariates, shape (n_samples, n_covariates)
-            This does not refer to target as is typical in scikit-learn.
+        batch : ndarray, shape (n_samples, )
+            Array of batches.
+        effects_interest: ndarray, shape (n_samples, n_features_of_effects),
+            optinal.
+            Array of effects of interest to keep after harmonisation.
 
         Returns
         -------
-        self : object
-            Returns self
+        in_features_transformed : harmonised in_features
         """
+        
+        in_features, batch, effects_interest = self._validate_for_transform(
+            in_features, batch, effects_interest)
 
-        return self._transform(X, y)
+        return self._transform(in_features,
+                               batch,
+                               effects_interest)
 
+    def _transform(self, Y, b, X):
+        """Actual deconfounding of the test features."""
+        test_batches = np.unique(b)
 
-    def _transform(self, test_features, test_confounds):
-        """Actual deconfounding of the test features"""
+        # First standarise again the data
+        Y_trans = Y - self.intercept_[np.newaxis, :]
 
-        check_is_fitted(self, 'model_', 'n_features_')
-        test_features = check_array(test_features, accept_sparse=True)
+        if self.coefs_x_.size > 0:
+            Y_trans -= np.matmul(X, self.coefs_x_)
 
-        if test_features.shape[1] != self.n_features_:
-            raise ValueError('number of features must be {}. Given {}'
-                             ''.format(self.n_features_, test_features.shape[1]))
+        Y_trans /= np.sqrt(self.epsilon_)
 
-        if test_confounds is None:  # during estimator checks
-            return test_features  # do nothing
+        for batch in test_batches:
 
-        test_confounds = check_array(test_confounds, ensure_2d=False)
-        check_consistent_length(test_features, test_confounds)
+            ix_batch = np.where(self.batches_ == batch)[0]
 
-        # test features as can be explained/predicted by their covariates
-        test_feat_predicted = self.model_.predict(test_confounds)
-        residuals = test_features - test_feat_predicted
+            Y_trans[b == batch, :] -= self.gamma_[ix_batch]
+            Y_trans[b == batch, :] /= np.sqrt(self.delta_sq_[ix_batch, :])
+        Y_trans *= np.sqrt(self.epsilon_)
 
-        return residuals
+        # Add intercept
+        Y_trans += self.intercept_[np.newaxis, :]
 
+        # Add effects of interest, if there's any
+        if self.coefs_x_.size > 0:
+            Y_trans += np.matmul(X, self.coefs_x_)
+
+        return Y_trans
+
+    def _validate_for_transform(self, Y, b, X):
+
+        # check if fitted
+        attributes = ['intercept_', 'coefs_x_', 'epsilon_', 
+                      'gamma_', 'delta_sq_']
+        
+        # Check if Combat was previously fitted
+        check_is_fitted(self, attributes=attributes)
+        
+        # Ensure that data are numpy array objects
+        Y = check_array(Y)
+        if X is not None:
+            X = check_array(X)
+            
+        # Check that input arrays have the same observations
+        check_consistent_length([Y, b, X])
+
+        if Y.shape[1] != len(self.intercept_):
+            raise ValueError("Wrong number of features for Y")
+
+        # Check that supplied batches exist in the fitted object
+        b_not_in_model = np.in1d(np.unique(b), self.batches_, invert=True)
+        if np.any(b_not_in_model):
+            raise ValueError("test batches categories not in "
+                             "the trained model")
+
+        if self.coefs_x_.size > 0:
+            if X is None:
+                raise ValueError("Effects of interest should be supplied, "
+                                 "since Combat was fitted with them")
+            if X.shape[1] != self.coefs_x_.shape[0]:
+                raise ValueError("Dimensions of fitted beta "
+                                 "and input X matrix do not match")
+
+        return Y, b, X
+
+    def fit_transform(self,
+                      in_features,
+                      batch,
+                      effects_interest=None):
+        """
+        Concatenate fit and transform operations.
+
+        Fit combat and then transform on the same data. You may want
+        to use this function for training data harmonisation
+
+       Parameters
+        ----------
+        in_features : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+        batch : ndarray, shape (n_samples, )
+            Array of batches.
+        effects_interest: ndarray, shape (n_samples, n_features_of_effects),
+            optinal.
+            Array of effects of interest to keep after harmonisation.
+
+        Returns
+        -------
+        in_features_transformed : harmonised in_features
+
+        """
+        # Fit Combat
+        self.fit(in_features=in_features,
+                 batch=batch,
+                 effects_interest=effects_interest
+                 )
+        # Use same data to harmonise it
+        return self.transform(in_features=in_features,
+                              batch=batch,
+                              effects_interest=effects_interest)
+
+    def _it_eb_param(self,
+                     Z_batch,
+                     gam_hat_batch,
+                     del_hat_sq_batch,
+                     gam_bar_batch,
+                     tau_sq_batch,
+                     lam_bar_batch,
+                     the_bar_batch,
+                     conv):
+        """Parametric EB estimation of location and scale paramaters."""
+        # Number of non nan samples within the batch for each variable
+        n = np.sum(1 - np.isnan(Z_batch), axis=0)
+        gam_prior = gam_hat_batch.copy()
+        del_sq_prior = del_hat_sq_batch.copy()
+
+        change = 1
+        count = 0
+        while change > conv:
+            gam_post = self._post_gamma(del_sq_prior,
+                                        gam_hat_batch,
+                                        gam_bar_batch,
+                                        tau_sq_batch,
+                                        n)
+
+            del_sq_post = self._post_delta(gam_post,
+                                           Z_batch,
+                                           lam_bar_batch,
+                                           the_bar_batch,
+                                           n)
+
+            change = max((abs(gam_post - gam_prior) / gam_prior).max(),
+                         (abs(del_sq_post - del_sq_prior) / del_sq_prior).max()
+                         )
+            gam_prior = gam_post
+            del_sq_prior = del_sq_post
+            count = count + 1
+
+        # TODO: Make namedtuple?
+        return (gam_post, del_sq_post)
+
+    def _it_eb_non_param():
+        # TODO
+        return NotImplementedError()
+
+    @staticmethod
+    def _compute_lambda(del_hat_sq, ddof):
+        """Estimation of hyper-parameter lambda."""
+        v = np.mean(del_hat_sq)
+        s2 = np.var(del_hat_sq, ddof=ddof)
+        # s2 += 1e-10
+        # In Johnson 2007  there's a typo
+        # in the suppl. material as it
+        # should be with v^2 and not v
+        return (2*s2 + v**2)/float(s2)
+
+    @staticmethod
+    def _compute_theta(del_hat_sq, ddof):
+        """Estimation of hyper-parameter theta."""
+        v = del_hat_sq.mean()
+        s2 = np.var(del_hat_sq, ddof=ddof)
+        # s2 += 1e-10
+        return (v*s2+v**3)/s2
+
+    @staticmethod
+    def _post_gamma(x, gam_hat, gam_bar, tau_bar_sq, n):
+        # x is delta_star
+        num = tau_bar_sq*n*gam_hat + x * gam_bar
+        den = tau_bar_sq*n + x
+        return num/den
+
+    @staticmethod
+    def _post_delta(x, Z, lam_bar, the_bar, n):
+        num = the_bar + 0.5*np.sum((Z - x[np.newaxis, :])**2, axis=0)
+        den = n/2.0 + lam_bar - 1
+        return num/den
