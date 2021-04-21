@@ -1,21 +1,21 @@
 import numpy as np
 
-
 from sklearn.utils.validation import (check_array, check_consistent_length,
                                       check_is_fitted, column_or_1d)
 from confounds.base import BaseDeconfound
+
 
 class ComBat(BaseDeconfound):
     """ComBat method to remove batch effects."""
 
     def __init__(self,
-                 parametric=True,  # Change this to true
-                 adjust_variance=True,
+                 # parametric=True, # TODO: When implmenented non-parametric
+                 # adjust_variance=True, # TODO: When implmented only mean
                  tol=1e-4):
         """Initiate object."""
         super().__init__(name='ComBat')
-        self.parametric = True  # For the moment just parametric case
-        self.adjust_variance = adjust_variance  # adjust variance or not
+        # self.parametric = True
+        # self.adjust_variance = True
         self.tol = tol
 
     def fit(self,
@@ -32,25 +32,27 @@ class ComBat(BaseDeconfound):
 
         Parameters
         ----------
-        in_features : {array-like, sparse matrix}, shape (n_samples, n_features)
+        in_features : {array-like, sparse matrix},
+                      shape (n_samples, n_features)
             The training input samples.
         batch : ndarray, shape (n_samples, )
             Array of batches.
         effects_interest: ndarray, shape (n_samples, n_features_of_effects),
             optinal.
             Array of effects of interest to keep after harmonisation.
-        
+
         Returns
         -------
         self: returns an instance of self.
 
         """
+
         in_features = check_array(in_features)
         batch = column_or_1d(batch)
 
         if effects_interest is not None:
             effects_interest = check_array(effects_interest)
-        
+
         check_consistent_length([in_features,
                                  batch,
                                  effects_interest])
@@ -72,7 +74,16 @@ class ComBat(BaseDeconfound):
 
         n_samples, n_features = Y.shape
         n_batch = B.shape[1]
+
+        if n_batch == 1:
+            raise ValueError('The number of batches should be at least 2')
+
         sample_per_batch = B.sum(axis=0)
+
+        if np.any(sample_per_batch == 1):
+            raise ValueError('Each batch should have at least 2 observations'
+                             'In the future, when this does not happens,'
+                             'only mean adjustment will take place')
 
         # Construct design matrix
         M = B.copy()
@@ -82,7 +93,7 @@ class ComBat(BaseDeconfound):
         else:
             end_x = n_batch
 
-        # OLS estimation
+        # OLS estimation for standardization
         beta_hat = np.matmul(np.linalg.inv(np.matmul(M.T, M)),
                              np.matmul(M.T, Y))
 
@@ -139,11 +150,12 @@ class ComBat(BaseDeconfound):
                                          axis=1,
                                          ddof=ddof_feat)
 
-        if self.parametric:
-            it_eb = self._it_eb_param
-        else:
-            it_eb = self._it_eb_non_param  # TODO: To be implemented
+        # if self.parametric: # TODO: Uncomment when implemented
+        #     it_eb = self._it_eb_param
+        # else:
+        #     it_eb = self._it_eb_non_param
 
+        it_eb = self._it_eb_param
         gamma_star, delta_sq_star = [], []
         for ii in range(B.shape[1]):
             g, d_sq = it_eb(Z[B[:, ii] == 1, :],
@@ -176,7 +188,8 @@ class ComBat(BaseDeconfound):
 
         Parameters
         ----------
-        in_features : {array-like, sparse matrix}, shape (n_samples, n_features)
+        in_features : {array-like, sparse matrix},
+                      shape (n_samples, n_features)
             The training input samples.
         batch : ndarray, shape (n_samples, )
             Array of batches.
@@ -188,7 +201,7 @@ class ComBat(BaseDeconfound):
         -------
         in_features_transformed : harmonised in_features
         """
-        
+
         in_features, batch, effects_interest = self._validate_for_transform(
             in_features, batch, effects_interest)
 
@@ -228,17 +241,17 @@ class ComBat(BaseDeconfound):
     def _validate_for_transform(self, Y, b, X):
 
         # check if fitted
-        attributes = ['intercept_', 'coefs_x_', 'epsilon_', 
+        attributes = ['intercept_', 'coefs_x_', 'epsilon_',
                       'gamma_', 'delta_sq_']
-        
+
         # Check if Combat was previously fitted
         check_is_fitted(self, attributes=attributes)
-        
+
         # Ensure that data are numpy array objects
         Y = check_array(Y)
         if X is not None:
             X = check_array(X)
-            
+
         # Check that input arrays have the same observations
         check_consistent_length([Y, b, X])
 
@@ -273,7 +286,8 @@ class ComBat(BaseDeconfound):
 
        Parameters
         ----------
-        in_features : {array-like, sparse matrix}, shape (n_samples, n_features)
+        in_features : {array-like, sparse matrix},
+                      shape (n_samples, n_features)
             The training input samples.
         batch : ndarray, shape (n_samples, )
             Array of batches.
