@@ -15,10 +15,12 @@ from confounds.combat import ComBat
 
 
 def test_estimator_API():
-    for est in (Residualize, Augment, DummyDeconfounding):
+    estimators = [Residualize(), Augment(), DummyDeconfounding()]
+    for est in estimators:
         try:
             check_estimator(est)
-            print('{} passes estimator checks'.format(est.__name__))
+            print('{} passes estimator'
+                  ' checks'.format(est.__getattribute__("name")))
         except:
             raise
 
