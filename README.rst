@@ -17,9 +17,9 @@ Conquering confounds and covariates in machine learning
 News
 ~~~~~~~~~~~~~~~~
 
- - **Hackathon folks**: Those coming here from the hackathon, please go here to learn some ideas for contribution: https://github.com/ohbm/hackathon2020/issues/171
+ - **Hackathon folks**: Those coming here from the hackathon, please go here to learn some ideas for contribution: https://github.com/ohbm/hackathon2021/issues/34
 
- - The slides for the OHBM 2020 Hackathon and Open Science Room are here: https://crossinvalidation.com/2020/03/04/conquering-confounds-and-covariates-in-machine-learning/
+ - The previous slides for the OHBM Hackathon and Open Science Room are here: https://crossinvalidation.com/2020/03/04/conquering-confounds-and-covariates-in-machine-learning/
 
 Vision / Goals
 ~~~~~~~~~~~~~~~
