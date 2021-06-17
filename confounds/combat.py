@@ -62,16 +62,16 @@ class ComBat(BaseDeconfound):
                                  batch,
                                  effects_interest])
 
-        return self._fit(Y=in_features,
-                         b=batch,
-                         X=effects_interest
+        return self._fit(in_feat=in_features,
+                         batch=batch,
+                         effects=effects_interest
                          )
 
 
     def _fit(self, in_feat, batch, effects):
         """Actual fit method."""
         # extract unique batch categories
-        batches = np.unique(b)
+        batches = np.unique(batch)
         self.batches_ = batches
 
         # Construct one-hot-encoding matrix for batches
@@ -79,7 +79,7 @@ class ComBat(BaseDeconfound):
         B = np.column_stack([(batch == b_name).astype(int)
                              for b_name in self.batches_])
 
-        n_samples, n_features = Y.shape
+        n_samples, n_features = in_feat.shape
         n_batch = B.shape[1]
 
         if n_batch == 1:
@@ -94,15 +94,15 @@ class ComBat(BaseDeconfound):
 
         # Construct design matrix
         M = B.copy()
-        if isinstance(X, np.ndarray):
-            M = np.column_stack((M, X))
-            end_x = n_batch + X.shape[1]
+        if isinstance(effects, np.ndarray):
+            M = np.column_stack((M, effects))
+            end_x = n_batch + effects.shape[1]
         else:
             end_x = n_batch
 
         # OLS estimation for standardization
         beta_hat = np.matmul(np.linalg.inv(np.matmul(M.T, M)),
-                             np.matmul(M.T, Y))
+                             np.matmul(M.T, in_feat))
 
         # Find grand mean intercepts, from batch intercepts
         alpha_hat = np.matmul(sample_per_batch / float(n_samples),
@@ -115,14 +115,14 @@ class ComBat(BaseDeconfound):
 
         # Compute error between predictions and observed values
         Y_hat = np.matmul(M, beta_hat)  # fitted observations
-        epsilon = np.mean(((Y - Y_hat)**2), axis=0)
-        self.epsilon_ = epsilon
+        variance = np.mean(((in_feat - Y_hat) ** 2), axis=0)
+        self.variance_ = variance  # square of sigma i.e. variance
 
         # Standardise data
-        Z = Y.copy()
+        Z = in_feat.copy()
         Z -= alpha_hat[np.newaxis, :]
         Z -= np.matmul(M[:, n_batch:end_x], coefs_x)
-        Z /= np.sqrt(epsilon)
+        Z /= np.sqrt(variance)
 
         # Find gamma fitted to Standardised data
         gamma_hat = np.matmul(np.linalg.inv(np.matmul(B.T, B)),
@@ -148,14 +148,14 @@ class ComBat(BaseDeconfound):
         delta_hat_sq = np.array(delta_hat_sq)
 
         # Compute inverse moments
-        lamba_bar = np.apply_along_axis(self._compute_lambda,
-                                        arr=delta_hat_sq,
-                                        axis=1,
-                                        ddof=ddof_feat)
-        thetha_bar = np.apply_along_axis(self._compute_theta,
+        lambda_bar = np.apply_along_axis(self._compute_lambda,
                                          arr=delta_hat_sq,
                                          axis=1,
                                          ddof=ddof_feat)
+        theta_bar = np.apply_along_axis(self._compute_theta,
+                                        arr=delta_hat_sq,
+                                        axis=1,
+                                        ddof=ddof_feat)
 
         # TODO: Uncomment when implemented
         # if self.parametric:
@@ -171,8 +171,8 @@ class ComBat(BaseDeconfound):
                             delta_hat_sq[ii, :],
                             gamma_bar[ii],
                             tau_bar_sq[ii],
-                            lamba_bar[ii],
-                            thetha_bar[ii],
+                            lambda_bar[ii],
+                            theta_bar[ii],
                             self.tol
                             )
 
@@ -222,7 +222,7 @@ class ComBat(BaseDeconfound):
 
     def _transform(self, in_feat, batch, effects):
         """Actual deconfounding of the test features."""
-        test_batches = np.unique(b)
+        test_batches = np.unique(batch)
 
         # test features must standardised before applying ComBat
         # TODO modularize this out for both training/testing
@@ -230,18 +230,18 @@ class ComBat(BaseDeconfound):
         Y_trans = in_feat - self.intercept_[np.newaxis, :]
 
         if self.coefs_x_.size > 0:
-            Y_trans -= np.matmul(X, self.coefs_x_)
+            Y_trans -= np.matmul(effects, self.coefs_x_)
 
-        Y_trans /= np.sqrt(self.epsilon_)
+        Y_trans /= np.sqrt(self.variance_)
 
         # actual transformation:
         for batch in test_batches:
 
             ix_batch = np.where(self.batches_ == batch)[0]
 
-            Y_trans[b == batch, :] -= self.gamma_[ix_batch]
-            Y_trans[b == batch, :] /= np.sqrt(self.delta_sq_[ix_batch, :])
-        Y_trans *= np.sqrt(self.epsilon_)
+            Y_trans[batch == batch, :] -= self.gamma_[ix_batch]
+            Y_trans[batch == batch, :] /= np.sqrt(self.delta_sq_[ix_batch, :])
+        Y_trans *= np.sqrt(self.variance_)
 
         # bringing test features into their original scale (sort of inv. standardize)
         # Add intercept
@@ -249,7 +249,7 @@ class ComBat(BaseDeconfound):
 
         # Add effects of interest, if there's any
         if self.coefs_x_.size > 0:
-            Y_trans += np.matmul(X, self.coefs_x_)
+            Y_trans += np.matmul(effects, self.coefs_x_)
 
         return Y_trans
 
@@ -283,7 +283,7 @@ class ComBat(BaseDeconfound):
         check_consistent_length([Y, b, X])
 
         if Y.shape[1] != len(self.intercept_):
-            raise ValueError("Wrong number of features for Y")
+            raise ValueError("Wrong number of features for in_feat")
 
         # Check that supplied batches exist in the fitted object
         b_not_in_model = np.in1d(np.unique(b), self.batches_, invert=True)
