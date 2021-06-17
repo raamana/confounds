@@ -86,14 +86,14 @@ def test_combat():
     n_features = 2
 
     # One effect of interest that we want to keep
-    X = rs.normal(size=(n_subj_per_batch + n_subj_per_batch, ))
+    X = rs.normal(size=(n_subj_per_batch + n_subj_per_batch,))
 
     # Global mean and noise parameters
     grand_mean = np.array([0.3, 0.2])
-    eps = rs.normal(scale=1e-5, size=(n_subj_per_batch*2, n_features))
+    eps = rs.normal(scale=1e-5, size=(n_subj_per_batch * 2, n_features))
 
     # Batch parameters
-    batch = [1]*n_subj_per_batch + [2]*n_subj_per_batch
+    batch = [1] * n_subj_per_batch + [2] * n_subj_per_batch
     shift_1 = np.array([0.05, -0.1])
     shift_2 = np.array([-0.3, 0.15])
     eps_1 = rs.normal(scale=1e-1, size=(n_subj_per_batch, n_features))
@@ -109,8 +109,8 @@ def test_combat():
     Y += grand_mean
 
     # Add dependence with the effect of interest
-    Y[:, 0] += 0.2*X
-    Y[:, 1] += -0.16*X
+    Y[:, 0] += 0.2 * X
+    Y[:, 1] += -0.16 * X
 
     # Add global noise
     Y += eps
@@ -147,7 +147,7 @@ def test_combat():
     # Test that batches no longer have different variances
     p_scale_after = np.array([bartlett(y[:n_subj_per_batch],
                                        y[n_subj_per_batch:])[1]
-                             for y in Y_trans.T]
+                              for y in Y_trans.T]
                              )
     assert np.all(p_scale_after > 0.05)
 
