@@ -8,15 +8,17 @@ from confounds.base import BaseDeconfound
 class ComBat(BaseDeconfound):
     """ComBat method to remove batch effects."""
 
+
     def __init__(self,
-                 # parametric=True, # TODO: When implmenented non-parametric
-                 # adjust_variance=True, # TODO: When implmented only mean
+                 # parametric=True, # TODO: When implemented non-parametric
+                 # adjust_variance=True, # TODO: When implemented only mean
                  tol=1e-4):
         """Initiate object."""
         super().__init__(name='ComBat')
         # self.parametric = True
         # self.adjust_variance = True
         self.tol = tol
+
 
     def fit(self,
             in_features,
@@ -62,7 +64,8 @@ class ComBat(BaseDeconfound):
                          X=effects_interest
                          )
 
-    def _fit(self, Y, b, X):
+
+    def _fit(self, in_feat, batch, effects):
         """Actual fit method."""
         # extract unique batch categories
         batches = np.unique(b)
@@ -98,7 +101,7 @@ class ComBat(BaseDeconfound):
                              np.matmul(M.T, Y))
 
         # Find grand mean intercepts, from batch intercepts
-        alpha_hat = np.matmul(sample_per_batch/float(n_samples),
+        alpha_hat = np.matmul(sample_per_batch / float(n_samples),
                               beta_hat[:n_batch, :])
         self.intercept_ = alpha_hat
 
@@ -123,8 +126,8 @@ class ComBat(BaseDeconfound):
                               )
         # Mean across input features
         gamma_bar = np.mean(gamma_hat, axis=1)
-        # Variance across input features
 
+        # Variance across input features
         if n_features > 1:
             ddof_feat = 1
         else:
@@ -150,7 +153,8 @@ class ComBat(BaseDeconfound):
                                          axis=1,
                                          ddof=ddof_feat)
 
-        # if self.parametric: # TODO: Uncomment when implemented
+        # TODO: Uncomment when implemented
+        # if self.parametric:
         #     it_eb = self._it_eb_param
         # else:
         #     it_eb = self._it_eb_non_param
@@ -174,10 +178,13 @@ class ComBat(BaseDeconfound):
         gamma_star = np.array(gamma_star)
         delta_sq_star = np.array(delta_sq_star)
 
+        # TODO: estimates on the goodness of fit and run checks, issue warnings etc
+
         self.gamma_ = gamma_star
         self.delta_sq_ = delta_sq_star
 
         return self
+
 
     def transform(self,
                   in_features,
@@ -209,7 +216,8 @@ class ComBat(BaseDeconfound):
                                batch,
                                effects_interest)
 
-    def _transform(self, Y, b, X):
+
+    def _transform(self, in_feat, batch, effects):
         """Actual deconfounding of the test features."""
         test_batches = np.unique(b)
 
@@ -237,6 +245,7 @@ class ComBat(BaseDeconfound):
             Y_trans += np.matmul(X, self.coefs_x_)
 
         return Y_trans
+
 
     def _validate_for_transform(self, Y, b, X):
 
@@ -274,6 +283,7 @@ class ComBat(BaseDeconfound):
 
         return Y, b, X
 
+
     def fit_transform(self,
                       in_features,
                       batch,
@@ -309,6 +319,7 @@ class ComBat(BaseDeconfound):
         return self.transform(in_features=in_features,
                               batch=batch,
                               effects_interest=effects_interest)
+
 
     def _it_eb_param(self,
                      Z_batch,
@@ -350,9 +361,13 @@ class ComBat(BaseDeconfound):
         # TODO: Make namedtuple?
         return (gam_post, del_sq_post)
 
-    def _it_eb_non_param():
+
+    def _it_eb_non_param(self):
+        """Non-parametric version"""
+
         # TODO
         return NotImplementedError()
+
 
     @staticmethod
     def _compute_lambda(del_hat_sq, ddof):
@@ -365,6 +380,7 @@ class ComBat(BaseDeconfound):
         # should be with v^2 and not v
         return (2*s2 + v**2)/float(s2)
 
+
     @staticmethod
     def _compute_theta(del_hat_sq, ddof):
         """Estimation of hyper-parameter theta."""
@@ -373,12 +389,14 @@ class ComBat(BaseDeconfound):
         # s2 += 1e-10
         return (v*s2+v**3)/s2
 
+
     @staticmethod
     def _post_gamma(x, gam_hat, gam_bar, tau_bar_sq, n):
         # x is delta_star
         num = tau_bar_sq*n*gam_hat + x * gam_bar
         den = tau_bar_sq*n + x
         return num/den
+
 
     @staticmethod
     def _post_delta(x, Z, lam_bar, the_bar, n):
