@@ -24,7 +24,7 @@ def test_combat():
 
     rs = np.random.RandomState(0)
 
-    n_subj_per_batch = 50
+    n_subj_per_batch = 50  # parametrize the tests over # subjects and # features
     n_features = 2
 
     # One effect of interest that we want to keep
@@ -76,10 +76,17 @@ def test_combat():
     assert np.all(p_effects_before < 0.05)
 
     combat = ComBat()
+
+    # testing on the same dataset
     Y_trans = combat.fit_transform(in_features=Y,
                                    batch=batch,
                                    effects_interest=X.reshape(-1, 1)
                                    )
+
+    # TODO split the data into training and testing
+    #   estimate ComBat on training
+    #   apply it on the test set
+
     # Test that batches no longer have different means
     p_loc_after = np.array([f_oneway(y[:n_subj_per_batch],
                                      y[n_subj_per_batch:])[1]
@@ -98,7 +105,7 @@ def test_combat():
     assert np.all(p_effects_after < 0.05)
 
 
-def test_combat_bladder():
+def test_equivalence_to_R_impl_SVA_on_bladder_dataset():
     """Test to check that Combat effectively removes batchs effects using
     the bladder cancer data used in the R package "SVA"
     https://rdrr.io/bioc/sva/src/tests/testthat/test_combat_bladderbatch_parallel.R
@@ -110,7 +117,7 @@ def test_combat_bladder():
                                 "data", "bladder_test.npz")
     bladder_test = np.load(bladder_file)
 
-    in_features = bladder_test['Y']
+    in_features = bladder_test['in_feat']
     batch = bladder_test['batch']
     effects_interest = bladder_test['effects_interest']
     # Categorical features should one hot encoded, dropping the first column
@@ -128,3 +135,12 @@ def test_combat_bladder():
                                             batch=batch,
                                             effects_interest=effects_interest)
     assert np.allclose(Y_combat_effects, bladder_test['Y_combat_effects'])
+
+
+def test_combat_batch_data_types():
+    """
+    Ensure it works for right and expected data types;
+    And also it generates an error for incorrect and unexpected data types!
+    """
+
+    # test1 re batch: it can be both numerical and categorical, but not floating
