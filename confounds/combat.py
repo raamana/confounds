@@ -268,8 +268,7 @@ class ComBat(BaseDeconfound):
         """
 
         # check if fitted
-        attributes = ['intercept_', 'coefs_x_', 'epsilon_',
-                      'gamma_', 'delta_sq_']
+        attributes = ['intercept_', 'coefs_x_', 'variance_', 'gamma_', 'delta_sq_']
 
         # Check if Combat was previously fitted
         check_is_fitted(self, attributes=attributes)
