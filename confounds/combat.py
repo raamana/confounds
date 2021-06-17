@@ -48,7 +48,11 @@ class ComBat(BaseDeconfound):
 
         """
 
-        in_features = check_array(in_features)
+        in_features = check_array(in_features, dtype="numeric",
+                                  force_all_finite=True,
+                                  ensure_2d=True, allow_nd=False,
+                                  ensure_min_samples=1,
+                                  ensure_min_features=1)
         batch = column_or_1d(batch)
 
         if effects_interest is not None:
