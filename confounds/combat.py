@@ -44,7 +44,7 @@ class ComBat(BaseDeconfound):
 
         Returns
         -------
-        self: returns an instance of self.
+        self
 
         """
 
@@ -101,6 +101,7 @@ class ComBat(BaseDeconfound):
             end_x = n_batch
 
         # OLS estimation for standardization
+        # X = self._standardize(in_feat, B, M, n_batch)
         beta_hat = np.matmul(np.linalg.inv(np.matmul(M.T, M)),
                              np.matmul(M.T, in_feat))
 
@@ -128,7 +129,7 @@ class ComBat(BaseDeconfound):
         gamma_hat = np.matmul(np.linalg.inv(np.matmul(B.T, B)),
                               np.matmul(B.T, Z)
                               )
-        # Mean across input features
+        # Mean gamma across input features
         gamma_bar = np.mean(gamma_hat, axis=1)
 
         # Variance across input features
@@ -142,7 +143,7 @@ class ComBat(BaseDeconfound):
         tau_bar_sq = np.var(gamma_hat, axis=1, ddof=ddof_feat)
         # tau_bar_sq += 1e-10
 
-        # Variance per batch and gen
+        # Variance per batch and feature
         delta_hat_sq = [np.var(Z[B[:, ii] == 1, :], axis=0, ddof=1)
                         for ii in range(B.shape[1])]
         delta_hat_sq = np.array(delta_hat_sq)
@@ -236,7 +237,6 @@ class ComBat(BaseDeconfound):
 
         # actual transformation:
         for batch in test_batches:
-
             ix_batch = np.where(self.batches_ == batch)[0]
 
             Y_trans[batch == batch, :] -= self.gamma_[ix_batch]
@@ -396,7 +396,7 @@ class ComBat(BaseDeconfound):
         # In Johnson 2007  there's a typo
         # in the suppl. material as it
         # should be with v^2 and not v
-        return (2*s2 + v**2)/float(s2)
+        return (2 * s2 + v ** 2) / float(s2)
 
 
     @staticmethod
@@ -405,19 +405,19 @@ class ComBat(BaseDeconfound):
         v = del_hat_sq.mean()
         s2 = np.var(del_hat_sq, ddof=ddof)
         # s2 += 1e-10
-        return (v*s2+v**3)/s2
+        return (v * s2 + v ** 3) / s2
 
 
     @staticmethod
     def _post_gamma(x, gam_hat, gam_bar, tau_bar_sq, n):
         # x is delta_star
-        num = tau_bar_sq*n*gam_hat + x * gam_bar
-        den = tau_bar_sq*n + x
-        return num/den
+        num = tau_bar_sq * n * gam_hat + x * gam_bar
+        den = tau_bar_sq * n + x
+        return num / den
 
 
     @staticmethod
     def _post_delta(x, Z, lam_bar, the_bar, n):
-        num = the_bar + 0.5*np.sum((Z - x[np.newaxis, :])**2, axis=0)
-        den = n/2.0 + lam_bar - 1
-        return num/den
+        num = the_bar + 0.5 * np.sum((Z - x[np.newaxis, :]) ** 2, axis=0)
+        den = n / 2.0 + lam_bar - 1
+        return num / den
