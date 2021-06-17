@@ -76,7 +76,6 @@ def test_method_does_not_introduce_bias():
     """
 
 
-
 def generate_dataset_with_confounding(n_subj_per_batch, n_features):
     """data generator with known relationships"""
 
@@ -158,13 +157,17 @@ def test_combat():
                                      y[n_subj_per_batch:])[1]
                             for y in Y_trans.T]
                            )
-    assert np.all(p_loc_after > 0.05)
+    if not np.all(p_loc_after > 0.05):
+        raise ValueError('batch means differ significantly after applying ComBat!')
+
     # Test that batches no longer have different variances
     p_scale_after = np.array([bartlett(y[:n_subj_per_batch],
                                        y[n_subj_per_batch:])[1]
                               for y in Y_trans.T]
                              )
-    assert np.all(p_scale_after > 0.05)
+    if not np.all(p_scale_after > 0.05):
+        raise ValueError('batch variances differ significantly after applying '
+                         'ComBat!')
 
     # Test that there is still a significant effect with X after harmonisation
     p_effects_after = np.array([pearsonr(y, X)[1] for y in Y_trans.T])
@@ -210,3 +213,6 @@ def test_combat_batch_data_types():
     """
 
     # test1 re batch: it can be both numerical and categorical, but not floating
+
+
+test_combat()
