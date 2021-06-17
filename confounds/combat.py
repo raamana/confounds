@@ -21,9 +21,9 @@ class ComBat(BaseDeconfound):
 
 
     def fit(self,
-            in_features,
-            batch,
-            effects_interest=None
+            in_features,  # input features you want to harmonize
+            batch,  # batch variable indicating site/scanner
+            effects_interest=None  #
             ):
         """
         Fit Combat.
@@ -39,9 +39,8 @@ class ComBat(BaseDeconfound):
             The training input samples.
         batch : ndarray, shape (n_samples, )
             Array of batches.
-        effects_interest: ndarray, shape (n_samples, n_features_of_effects),
-            optinal.
-            Array of effects of interest to keep after harmonisation.
+        effects_interest: ndarray (n_samples, n_features_of_effects)
+            Optional array of effects of interest to retain after harmonisation.
 
         Returns
         -------
@@ -72,7 +71,8 @@ class ComBat(BaseDeconfound):
         self.batches_ = batches
 
         # Construct one-hot-encoding matrix for batches
-        B = np.column_stack([(b == b_name).astype(int)
+        # TODO is there a reason this might fail? Should we OneHotEncoder()?
+        B = np.column_stack([(batch == b_name).astype(int)
                              for b_name in self.batches_])
 
         n_samples, n_features = Y.shape
@@ -200,9 +200,8 @@ class ComBat(BaseDeconfound):
             The training input samples.
         batch : ndarray, shape (n_samples, )
             Array of batches.
-        effects_interest: ndarray, shape (n_samples, n_features_of_effects),
-            optinal.
-            Array of effects of interest to keep after harmonisation.
+        effects_interest: ndarray (n_samples, n_features_of_effects),
+            optional array of effects of interest to keep after harmonisation.
 
         Returns
         -------
@@ -221,14 +220,17 @@ class ComBat(BaseDeconfound):
         """Actual deconfounding of the test features."""
         test_batches = np.unique(b)
 
-        # First standarise again the data
-        Y_trans = Y - self.intercept_[np.newaxis, :]
+        # test features must standardised before applying ComBat
+        # TODO modularize this out for both training/testing
+        #   to ensure it is applied on both using same estimates
+        Y_trans = in_feat - self.intercept_[np.newaxis, :]
 
         if self.coefs_x_.size > 0:
             Y_trans -= np.matmul(X, self.coefs_x_)
 
         Y_trans /= np.sqrt(self.epsilon_)
 
+        # actual transformation:
         for batch in test_batches:
 
             ix_batch = np.where(self.batches_ == batch)[0]
@@ -237,6 +239,7 @@ class ComBat(BaseDeconfound):
             Y_trans[b == batch, :] /= np.sqrt(self.delta_sq_[ix_batch, :])
         Y_trans *= np.sqrt(self.epsilon_)
 
+        # bringing test features into their original scale (sort of inv. standardize)
         # Add intercept
         Y_trans += self.intercept_[np.newaxis, :]
 
@@ -248,6 +251,17 @@ class ComBat(BaseDeconfound):
 
 
     def _validate_for_transform(self, Y, b, X):
+        """
+        Method to ensure data is appropriate for transform, such as
+        - ensuring batches in test set exist in the training set also
+        - consistency in variable dimensions tec
+
+        Returns
+        -------
+        ValueError
+            if any of the checks fail
+
+        """
 
         # check if fitted
         attributes = ['intercept_', 'coefs_x_', 'epsilon_',
