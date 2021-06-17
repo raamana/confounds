@@ -76,15 +76,11 @@ def test_method_does_not_introduce_bias():
     """
 
 
-def test_combat():
-    """Test to check that Combat effectively removes batchs effects."""
 
-    from scipy.stats import f_oneway, bartlett, pearsonr
+def generate_dataset_with_confounding(n_subj_per_batch, n_features):
+    """data generator with known relationships"""
 
     rs = np.random.RandomState(0)
-
-    n_subj_per_batch = 50  # parametrize the tests over # subjects and # features
-    n_features = 2
 
     # One effect of interest that we want to keep
     X = rs.normal(size=(n_subj_per_batch + n_subj_per_batch,))
@@ -133,6 +129,17 @@ def test_combat():
     # Test that there's a significant effect with X
     p_effects_before = np.array([pearsonr(y, X)[1] for y in Y.T])
     assert np.all(p_effects_before < 0.05)
+
+    return Y, X, batch
+
+
+def test_combat():
+    """Test to check that Combat effectively removes batchs effects."""
+
+    n_subj_per_batch = 50  # parametrize the tests over # subjects and # features
+    n_features = 2
+
+    Y, X, batch = generate_dataset_with_confounding(n_subj_per_batch, n_features)
 
     combat = ComBat()
 
