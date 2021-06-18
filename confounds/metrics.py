@@ -13,32 +13,54 @@ from confounds import Residualize
 from scipy import stats
 
 
-def partial_correlation(predictions, targets, confounds, significance_test=True):
+def partial_correlation(X, y=None):
     """
+    Calculates the partial correlation
 
     Parameters
     ----------
-    predictions :
-    targets :
-    confounds :
-    significance_test :
+    X : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+    C : {array-like, sparse matrix}, shape (n_samples, n_covariates)
+            This does not refer to target as is typical in scikit-learn.
 
     Returns
     -------
-
+    partial_correlations : ndarray
+        Returns the pairwise partial correlations of each variable in X
     """
-    res1=Residualize()
-    res1.fit(predictions, confounds)
-    deconfound_predictions = res1.transform(predictions, confounds)
-    res2 = Residualize()
-    res2.fit(targets, confounds)
-    deconfound_targets = res2.transform(targets, confounds)
-    partial_correlation = np.corrcoef(deconfound_predictions, deconfound_targets, rowvar=False)[0, 1]
+    resx = Residualize()
+    resx.fit(X, y)
+    deconfound_X = resx.transform(X, y)
+    return np.corrcoef(deconfound_X, rowvar=False)
 
-    if significance_test:
-        n = deconfound_predictions.shape[0]
-        g = confounds.shape[1]
-        t = partial_correlation * np.sqrt((n - 2 - g) / (1 - partial_correlation ** 2))
-        statistical_significance = stats.t.sf(np.abs(t), df=n - 1)
-        return partial_correlation, statistical_significance
-    return partial_correlation
+
+def prediction_partial_correlation(predictions, targets, confounds):
+    """
+    As seen in:
+    Dinga R, Schmaal L, Penninx BW, Veltman DJ, Marquand AF. Controlling for effects of confounding variables on machine learning predictions. BioRxiv. 2020 Jan 1.
+
+    Parameters
+    ----------
+    predictions : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+    targets : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+    confounds : {array-like, sparse matrix}, shape (n_samples, n_features)
+            The training input samples.
+
+    Returns
+    -------
+    corr_p : float
+        The partial correlation of the predictions and targets with respect to the confounds
+    t_statistic: float
+        The t statistic for the statistical significance of the partial correlation
+    statistical_significance: float
+        The associated p value for the t statistic
+    """
+    n = predictions.shape[0]
+    g = confounds.shape[1]
+    corr_p = partial_correlation(np.hstack((predictions, targets)), confounds)[0, 1]
+    t_statistic = corr_p * np.sqrt((n - 2 - g) / (1 - corr_p ** 2))
+    statistical_significance = stats.t.sf(np.abs(t_statistic), df=n - 1)
+    return corr_p, t_statistic, statistical_significance

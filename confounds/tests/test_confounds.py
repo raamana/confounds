@@ -9,6 +9,7 @@ from sklearn.datasets import make_classification, make_sparse_uncorrelated
 from sklearn.utils.estimator_checks import check_estimator
 
 from confounds.base import Augment, DummyDeconfounding, Residualize
+from confounds.metrics import partial_correlation
 
 
 def test_estimator_API():
@@ -60,6 +61,17 @@ def test_residualize_linear():
 
             # residual_train_X and train_confounds must be orthogonal now!
             assert_almost_equal(residual_train_X.T.dot(train_confounds), 0)
+
+
+def test_partial_correlation():
+    """check that partial correlations are less than correlations"""
+    n_samples = 100
+    train_all, train_y = make_classification(n_features=5)
+    train_X, train_confounds = splitter_X_confounds(train_all, 1)
+    # check that partial correlation with no confounds is the same as correlation using np.corrcoef
+    assert_almost_equal(np.corrcoef(train_X, rowvar=False),
+                        partial_correlation(train_X, np.zeros((train_X.shape[0], 1))))
+    #numerical test with known partial correlation perhaps?
 
 
 def test_method_does_not_introduce_bias():
