@@ -58,7 +58,7 @@ def partial_correlation_t_test(X, y=None):
     statistical_significance : ndarray
         Returns the associated p-values for these pairwise partial correlations
     """
-    corr_p = partial_correlation(X, y=None)
+    corr_p = partial_correlation(X, y=y)
     n = X.shape[0]
     g = y.shape[1]
     # Replace perfect correlations to ensure large but not infinite t statistic
@@ -98,8 +98,10 @@ def prediction_partial_correlation(predictions, targets, confounds):
     statistical_significance: float
         The associated p value for the t statistic
     """
-    p = predictions.shape[1]
+    if np.ndim(predictions) == 1:
+        p = 1
+    else:
+        p = predictions.shape[1]
+    corr_p, t_statistic, statistical_significance = partial_correlation_t_test(np.stack((predictions, targets), axis=1), confounds)
     # Just extract the partials between predictions and associated targets
-    corr_p, t_statistic, statistical_significance = np.diag(
-        partial_correlation_t_test(np.hstack((predictions, targets)), confounds)[:p, p:])
-    return corr_p, t_statistic, statistical_significance
+    return np.diag(corr_p[:p, p:]), np.diag(t_statistic[:p, p:]), np.diag(statistical_significance[:p, p:])

@@ -4,12 +4,13 @@
 """Tests for `confounds` package."""
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_less
 from sklearn.datasets import make_classification, make_sparse_uncorrelated
 from sklearn.utils.estimator_checks import check_estimator
 
 from confounds.base import Augment, DummyDeconfounding, Residualize
-from confounds.metrics import partial_correlation
+from confounds.metrics import partial_correlation, partial_correlation_t_test, prediction_partial_correlation
+from sklearn.linear_model import LinearRegression
 
 
 def test_estimator_API():
@@ -71,7 +72,12 @@ def test_partial_correlation():
     # check that partial correlation with no confounds is the same as correlation using np.corrcoef
     assert_almost_equal(np.corrcoef(train_X, rowvar=False),
                         partial_correlation(train_X, np.zeros((train_X.shape[0], 1))))
-    #numerical test with known partial correlation perhaps?
+    # check that a linear regression fit using all variables has a lower r**2 partial correlation.
+    lr = LinearRegression().fit(train_all, train_y)
+    pred = lr.predict(train_all)
+    corr_p, t_stat, p_val = prediction_partial_correlation(pred,train_y,train_confounds)
+    assert_array_less(corr_p,lr.score(train_all,train_y))
+    print()
 
 
 def test_method_does_not_introduce_bias():
