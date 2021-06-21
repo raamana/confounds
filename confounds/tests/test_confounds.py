@@ -76,8 +76,7 @@ def test_partial_correlation():
     lr = LinearRegression().fit(train_all, train_y)
     pred = lr.predict(train_all)
     corr_p, t_stat, p_val = prediction_partial_correlation(pred,train_y,train_confounds)
-    assert_array_less(corr_p,lr.score(train_all,train_y))
-    print()
+    assert_array_less(lr.score(train_all,train_y),corr_p)
 
 
 def test_method_does_not_introduce_bias():
