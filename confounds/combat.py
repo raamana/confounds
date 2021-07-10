@@ -8,7 +8,6 @@ from confounds.base import BaseDeconfound
 class ComBat(BaseDeconfound):
     """ComBat method to remove batch effects."""
 
-
     def __init__(self,
                  # parametric=True, # TODO: When implemented non-parametric
                  # adjust_variance=True, # TODO: When implemented only mean
@@ -18,7 +17,6 @@ class ComBat(BaseDeconfound):
         # self.parametric = True
         # self.adjust_variance = True
         self.tol = tol
-
 
     def fit(self,
             in_features,  # input features you want to harmonize
@@ -66,7 +64,6 @@ class ComBat(BaseDeconfound):
                          batch=batch,
                          effects=effects_interest
                          )
-
 
     def _fit(self, in_feat, batch, effects):
         """Actual fit method."""
@@ -190,7 +187,6 @@ class ComBat(BaseDeconfound):
 
         return self
 
-
     def transform(self,
                   in_features,
                   batch,
@@ -220,7 +216,6 @@ class ComBat(BaseDeconfound):
                                batch,
                                effects_interest)
 
-
     def _transform(self, in_feat, batch, effects):
         """Actual deconfounding of the test features."""
         test_batches = np.unique(batch)
@@ -236,11 +231,12 @@ class ComBat(BaseDeconfound):
         Y_trans /= np.sqrt(self.variance_)
 
         # actual transformation:
-        for batch in test_batches:
-            ix_batch = np.where(self.batches_ == batch)[0]
-
-            Y_trans[batch == batch, :] -= self.gamma_[ix_batch]
-            Y_trans[batch == batch, :] /= np.sqrt(self.delta_sq_[ix_batch, :])
+        for tb in test_batches:
+            # select corresponding batch estimation
+            ix_batch = np.where(self.batches_ == tb)[0]
+            # Apply to the observations within this particular test batch
+            Y_trans[batch == tb, :] -= self.gamma_[ix_batch]
+            Y_trans[batch == tb, :] /= np.sqrt(self.delta_sq_[ix_batch, :])
         Y_trans *= np.sqrt(self.variance_)
 
         # bringing test features into their original scale (sort of inv. standardize)
@@ -252,7 +248,6 @@ class ComBat(BaseDeconfound):
             Y_trans += np.matmul(effects, self.coefs_x_)
 
         return Y_trans
-
 
     def _validate_for_transform(self, Y, b, X):
         """
@@ -268,7 +263,11 @@ class ComBat(BaseDeconfound):
         """
 
         # check if fitted
-        attributes = ['intercept_', 'coefs_x_', 'variance_', 'gamma_', 'delta_sq_']
+        attributes = ['intercept_',
+                      'coefs_x_',
+                      'variance_',
+                      'gamma_',
+                      'delta_sq_']
 
         # Check if Combat was previously fitted
         check_is_fitted(self, attributes=attributes)
@@ -299,7 +298,6 @@ class ComBat(BaseDeconfound):
                                  "and input X matrix do not match")
 
         return Y, b, X
-
 
     def fit_transform(self,
                       in_features,
@@ -336,7 +334,6 @@ class ComBat(BaseDeconfound):
         return self.transform(in_features=in_features,
                               batch=batch,
                               effects_interest=effects_interest)
-
 
     def _it_eb_param(self,
                      Z_batch,
@@ -378,13 +375,11 @@ class ComBat(BaseDeconfound):
         # TODO: Make namedtuple?
         return (gam_post, del_sq_post)
 
-
     def _it_eb_non_param(self):
         """Non-parametric version"""
 
         # TODO
         return NotImplementedError()
-
 
     @staticmethod
     def _compute_lambda(del_hat_sq, ddof):
@@ -397,7 +392,6 @@ class ComBat(BaseDeconfound):
         # should be with v^2 and not v
         return (2 * s2 + v ** 2) / float(s2)
 
-
     @staticmethod
     def _compute_theta(del_hat_sq, ddof):
         """Estimation of hyper-parameter theta."""
@@ -406,14 +400,12 @@ class ComBat(BaseDeconfound):
         # s2 += 1e-10
         return (v * s2 + v ** 3) / s2
 
-
     @staticmethod
     def _post_gamma(x, gam_hat, gam_bar, tau_bar_sq, n):
         # x is delta_star
         num = tau_bar_sq * n * gam_hat + x * gam_bar
         den = tau_bar_sq * n + x
         return num / den
-
 
     @staticmethod
     def _post_delta(x, Z, lam_bar, the_bar, n):

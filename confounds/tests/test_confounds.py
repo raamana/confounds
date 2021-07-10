@@ -197,13 +197,14 @@ def test_equivalence_to_R_impl_SVA_on_bladder_dataset():
 
     combat = ComBat()
 
-    Y_combat = combat.fit_transform(in_features=in_features, batch=batch)
-    assert np.allclose(Y_combat, bladder_test['Y_combat'])
+    in_feat_combat = combat.fit_transform(in_features=in_features, batch=batch)
+    assert np.allclose(in_feat_combat, bladder_test['in_feat_combat'])
 
-    Y_combat_effects = combat.fit_transform(in_features=in_features,
-                                            batch=batch,
-                                            effects_interest=effects_interest)
-    assert np.allclose(Y_combat_effects, bladder_test['Y_combat_effects'])
+    in_feat_combat_effects = combat.fit_transform(in_features=in_features,
+                                                  batch=batch,
+                                                  effects_interest=effects_interest)
+    assert np.allclose(in_feat_combat_effects,
+                       bladder_test['in_feat_combat_effects'])
 
 
 def test_combat_batch_data_types():
