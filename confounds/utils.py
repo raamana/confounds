@@ -94,3 +94,37 @@ def get_model(name='linear'):
                          'Choose one of linear, ridge and GPR.')
 
     return model
+
+
+def check_list(input_combat):
+    
+    """ Check that combat data is a list and has 3 components"""
+    
+    # TODO: see sklearn if it's better using other than VAlueError here
+    if type(input_combat) != list:
+        raise ValueError(" Input data should be a list")
+    if len(input_combat) != 3:
+        raise ValueError(" Input data list should have three components")
+        
+    # Ensure 2D arrays of each componet   
+    import numpy as np
+    from sklearn.utils import check_array, column_or_1d
+    
+    input_combat[0] = check_array(input_combat[0], ensure_2d=False)
+    input_combat[0] = column_or_1d(input_combat[0])
+    
+    if np.size(input_combat[1]) > 0:
+        input_combat[1] = check_array(input_combat[1])
+    if np.size(input_combat[2]) > 0:
+        input_combat[2] = check_array(input_combat[2])
+    
+            
+    # # Check that all have the same 
+    # n_obs = np.array([elem.shape[1] for elem in input_combat if elem])
+    # if np.any(n_obs != n_obs[0]):
+    #     raise ValueError(" All input componets should have the same observations")
+        
+    #input_combat[0] = pd.get_dummies(input_combat[0])
+        
+    return input_combat
+    
