@@ -277,6 +277,8 @@ class Residualize(BaseDeconfound):
             return test_features  # do nothing
 
         test_confounds = check_array(test_confounds, ensure_2d=False)
+        if test_confounds.ndim == 1:
+            test_confounds = test_confounds[:, np.newaxis]
         check_consistent_length(test_features, test_confounds)
 
         # test features as can be explained/predicted by their covariates
