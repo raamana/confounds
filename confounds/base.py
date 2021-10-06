@@ -152,7 +152,7 @@ class Augment(BaseDeconfound):
     def _transform(self, test_features, test_confounds):
         """Actual deconfounding of the test features"""
 
-        check_is_fitted(self, 'n_features_')
+        check_is_fitted(self, ('n_features_', ))
         test_features = check_array(test_features, accept_sparse=True)
 
         if test_features.shape[1] != self.n_features_:
@@ -266,7 +266,7 @@ class Residualize(BaseDeconfound):
     def _transform(self, test_features, test_confounds):
         """Actual deconfounding of the test features"""
 
-        check_is_fitted(self, 'model_', 'n_features_')
+        check_is_fitted(self, ('model_', 'n_features_'))
         test_features = check_array(test_features, accept_sparse=True)
 
         if test_features.shape[1] != self.n_features_:
@@ -355,7 +355,7 @@ class DummyDeconfounding(BaseDeconfound):
 
         """
 
-        check_is_fitted(self, 'n_features_')
+        check_is_fitted(self, ('n_features_', ))
         X = check_array(X, accept_sparse=True)
 
         if X.shape[1] != self.n_features_:
