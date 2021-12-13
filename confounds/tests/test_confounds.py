@@ -75,8 +75,18 @@ def test_partial_correlation():
     # check that a linear regression fit using all variables has a lower r**2 partial correlation.
     lr = LinearRegression().fit(train_all, train_y)
     pred = lr.predict(train_all)
-    corr_p, t_stat, p_val = prediction_partial_correlation(pred,train_y,train_confounds)
-    assert_array_less(lr.score(train_all,train_y),corr_p)
+    # return the partial correlation of predictions after removing confounds
+    corr_p, t_stat, p_val = prediction_partial_correlation(pred, train_y, train_confounds, t_test=True)
+    assert_array_less(lr.score(train_all, train_y), corr_p)
+
+
+def test_partial_correlation_t_test():
+    C = np.random.rand(100, 1)
+    C_dummy = np.zeros_like(C)
+    X = C + np.random.normal(size=(100, 10))
+    corr_p, t_statistic, statistical_significance = partial_correlation_t_test(X, C=C_dummy)
+    corr_p_d, t_statistic_d, statistical_significance_d = partial_correlation_t_test(X, C=C)
+    assert_array_less(statistical_significance, statistical_significance_d)
 
 
 def test_method_does_not_introduce_bias():
@@ -84,3 +94,7 @@ def test_method_does_not_introduce_bias():
     Test to ensure any deconfounding method does NOT introduce bias in a sample
     when confounds not have any relationship with the target!
     """
+
+
+if __name__ == '__main__':
+    test_partial_correlation_t_test()
