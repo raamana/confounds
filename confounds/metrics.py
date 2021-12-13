@@ -48,6 +48,12 @@ def partial_correlation_t_test(partial_correlations, n, g):
     """
     Calculates the t-statistic and p-value for pairwise partial correlations.
 
+    The statistical significance of the partial correlation can be obtained
+    parametrically using a Student‘s t distribution.
+
+    This is equivalent to fitting and testing the significance of a linear
+    regression model with  model predictions p and confounds C as covariates
+
     References
     -----------
     Dinga R, Schmaal L, Penninx BW, Veltman DJ, Marquand AF. Controlling for effects of
