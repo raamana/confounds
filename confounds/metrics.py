@@ -46,8 +46,7 @@ def partial_correlation(X, C=None):
 
 def partial_correlation_t_test(partial_correlations, n, g):
     """
-    Calculates the t-statistic and p-value for pairwise partial correlations between all of the variables in X with
-    respect to some confounding variables C.
+    Calculates the t-statistic and p-value for pairwise partial correlations.
 
     References
     -----------
@@ -71,7 +70,9 @@ def partial_correlation_t_test(partial_correlations, n, g):
         Returns the associated p-values for these pairwise partial correlations
     """
     partial_correlations[partial_correlations == 1] = 1 - 1e-7
+    #The degrees of freedom for the test are the number of samples minus the number of confounding variables minus 2
     df = n - 2 - g
+    #We conduct a t-test and compute its significance
     t_statistic = partial_correlations * np.sqrt(df / (1 - partial_correlations ** 2))
     p_value = stats.t.sf(np.abs(t_statistic), df=df)
     return t_statistic, p_value
