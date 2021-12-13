@@ -266,7 +266,7 @@ class Residualize(BaseDeconfound):
     def _transform(self, test_features, test_confounds):
         """Actual deconfounding of the test features"""
 
-        check_is_fitted(self, 'model_', 'n_features_')
+        check_is_fitted(self, ['model_', 'n_features_'])
         test_features = check_array(test_features, accept_sparse=True)
 
         if test_features.shape[1] != self.n_features_:
