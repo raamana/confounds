@@ -3,15 +3,18 @@
 
 """Tests for `confounds` package."""
 
-import numpy as np
 import os
 
-from numpy.testing import assert_almost_equal
+import numpy as np
+from numpy.testing import assert_almost_equal, assert_array_less
 from sklearn.datasets import make_classification, make_sparse_uncorrelated
+from sklearn.linear_model import LinearRegression
 from sklearn.utils.estimator_checks import check_estimator
 
+from confounds import prediction_partial_correlation
 from confounds.base import Augment, DummyDeconfounding, Residualize
 from confounds.combat import ComBat
+from confounds.metrics import partial_correlation_t_test, partial_correlation
 
 
 def test_estimator_API():
@@ -86,14 +89,14 @@ def test_combat():
     n_features = 2
 
     # One effect of interest that we want to keep
-    X = rs.normal(size=(n_subj_per_batch + n_subj_per_batch, ))
+    X = rs.normal(size=(n_subj_per_batch + n_subj_per_batch,))
 
     # Global mean and noise parameters
     grand_mean = np.array([0.3, 0.2])
-    eps = rs.normal(scale=1e-5, size=(n_subj_per_batch*2, n_features))
+    eps = rs.normal(scale=1e-5, size=(n_subj_per_batch * 2, n_features))
 
     # Batch parameters
-    batch = [1]*n_subj_per_batch + [2]*n_subj_per_batch
+    batch = [1] * n_subj_per_batch + [2] * n_subj_per_batch
     shift_1 = np.array([0.05, -0.1])
     shift_2 = np.array([-0.3, 0.15])
     eps_1 = rs.normal(scale=1e-1, size=(n_subj_per_batch, n_features))
@@ -109,8 +112,8 @@ def test_combat():
     Y += grand_mean
 
     # Add dependence with the effect of interest
-    Y[:, 0] += 0.2*X
-    Y[:, 1] += -0.16*X
+    Y[:, 0] += 0.2 * X
+    Y[:, 1] += -0.16 * X
 
     # Add global noise
     Y += eps
@@ -147,7 +150,7 @@ def test_combat():
     # Test that batches no longer have different variances
     p_scale_after = np.array([bartlett(y[:n_subj_per_batch],
                                        y[n_subj_per_batch:])[1]
-                             for y in Y_trans.T]
+                              for y in Y_trans.T]
                              )
     assert np.all(p_scale_after > 0.05)
 
@@ -186,3 +189,32 @@ def test_combat_bladder():
                                             batch=batch,
                                             effects_interest=effects_interest)
     assert np.allclose(Y_combat_effects, bladder_test['Y_combat_effects'])
+
+
+def test_partial_correlation():
+    """check that partial correlations are less than correlations"""
+    n_samples = 100
+    train_all, train_y = make_classification(n_features=5)
+    train_X, train_confounds = splitter_X_confounds(train_all, 2)
+    # check that partial correlation with no confounds is the same as correlation using np.corrcoef
+    assert_almost_equal(np.corrcoef(train_X, rowvar=False),
+                        partial_correlation(train_X, C=np.zeros((train_X.shape[0], 1))))
+    # check that a linear regression fit using all variables has a lower r**2 partial correlation.
+    lr = LinearRegression().fit(train_all, train_y)
+    pred = lr.predict(train_all)
+    # return the partial correlation of predictions after removing confounds
+    corr_p = prediction_partial_correlation(pred, train_y, train_confounds)
+    assert_array_less(corr_p,lr.score(train_all, train_y))
+
+
+def test_partial_correlation_t_test():
+    C = np.random.normal(size=(100, 1))
+    C_dummy = np.zeros_like(C)
+    X = C + np.random.normal(0,0.1,size=(100, 10))
+    corr_p = partial_correlation(X, C=C_dummy)
+    t_statistic, statistical_significance = partial_correlation_t_test(corr_p, X.shape[0], C_dummy.shape[1])
+    corr_pd = partial_correlation(X, C=C)
+    t_statistic, statistical_significance_d = partial_correlation_t_test(corr_pd, X.shape[0], C.shape[1])
+    #checks that the partial correlations of variables with respect to confounds have are lower
+    idx=np.triu_indices_from(statistical_significance,1)
+    assert_array_less(statistical_significance[idx], statistical_significance_d[idx])

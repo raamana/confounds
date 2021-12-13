@@ -1,5 +1,6 @@
 numpy
 scikit-learn
+seaborn
 setuptools
 pytest
 pytest-runner
