@@ -77,12 +77,10 @@ If you found any parts of ``confounds`` to be useful in your research, directly 
 Contributors are most welcome.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your contributions of all kinds will be greatly appreciated. Learn how to contributes here at `contrib_link`_.
+Your contributions of all kinds will be greatly appreciated. Learn how to contribute to this repo `here <CONTRIBUTING.rst>`_.
 
 All contributors making non-trivial contributions will be
 
- - publicly and clearly acknowledged on the `authors_link`_ page
- - become an author on the [software] paper to be published in the future.
+ - publicly and clearly acknowledged on the `authors page <AUTHORS.rst>`_
+ - become an author on the [software] paper to be published when it's ready soon.
 
-.. _contrib_link: CONTRIBUTING.rst
-.. _authors_link: AUTHORS.rst
