@@ -6,13 +6,15 @@
 import os
 
 import numpy as np
-from numpy.testing import assert_almost_equal
-from scipy.stats import bartlett, f_oneway, pearsonr
+from numpy.testing import assert_almost_equal, assert_array_less
 from sklearn.datasets import make_classification, make_sparse_uncorrelated
+from sklearn.linear_model import LinearRegression
 from sklearn.utils.estimator_checks import check_estimator
 
+from confounds import prediction_partial_correlation
 from confounds.base import Augment, DummyDeconfounding, Residualize
 from confounds.combat import ComBat
+from confounds.metrics import partial_correlation_t_test, partial_correlation
 
 
 def test_estimator_API():
@@ -76,10 +78,15 @@ def test_method_does_not_introduce_bias():
     """
 
 
-def generate_dataset_with_confounding(n_subj_per_batch, n_features):
-    """data generator with known relationships"""
+def test_combat():
+    """Test to check that Combat effectively removes batchs effects."""
+
+    from scipy.stats import f_oneway, bartlett, pearsonr
 
     rs = np.random.RandomState(0)
+
+    n_subj_per_batch = 50
+    n_features = 2
 
     # One effect of interest that we want to keep
     X = rs.normal(size=(n_subj_per_batch + n_subj_per_batch,))
@@ -129,52 +136,30 @@ def generate_dataset_with_confounding(n_subj_per_batch, n_features):
     p_effects_before = np.array([pearsonr(y, X)[1] for y in Y.T])
     assert np.all(p_effects_before < 0.05)
 
-    return Y, X, batch
-
-
-def test_combat():
-    """Test to check that Combat effectively removes batchs effects."""
-
-    n_subj_per_batch = 50  # parametrize the tests over # subjects and # features
-    n_features = 2
-
-    Y, X, batch = generate_dataset_with_confounding(n_subj_per_batch, n_features)
-
     combat = ComBat()
-
-    # testing on the same dataset
     Y_trans = combat.fit_transform(in_features=Y,
                                    batch=batch,
                                    effects_interest=X.reshape(-1, 1)
                                    )
-
-    # TODO split the data into training and testing
-    #   estimate ComBat on training
-    #   apply it on the test set
-
     # Test that batches no longer have different means
     p_loc_after = np.array([f_oneway(y[:n_subj_per_batch],
                                      y[n_subj_per_batch:])[1]
                             for y in Y_trans.T]
                            )
-    if not np.all(p_loc_after > 0.05):
-        raise ValueError('batch means differ significantly after applying ComBat!')
-
+    assert np.all(p_loc_after > 0.05)
     # Test that batches no longer have different variances
     p_scale_after = np.array([bartlett(y[:n_subj_per_batch],
                                        y[n_subj_per_batch:])[1]
                               for y in Y_trans.T]
                              )
-    if not np.all(p_scale_after > 0.05):
-        raise ValueError('batch variances differ significantly after applying '
-                         'ComBat!')
+    assert np.all(p_scale_after > 0.05)
 
     # Test that there is still a significant effect with X after harmonisation
     p_effects_after = np.array([pearsonr(y, X)[1] for y in Y_trans.T])
     assert np.all(p_effects_after < 0.05)
 
 
-def test_equivalence_to_R_impl_SVA_on_bladder_dataset():
+def test_combat_bladder():
     """Test to check that Combat effectively removes batchs effects using
     the bladder cancer data used in the R package "SVA"
     https://rdrr.io/bioc/sva/src/tests/testthat/test_combat_bladderbatch_parallel.R
@@ -186,7 +171,7 @@ def test_equivalence_to_R_impl_SVA_on_bladder_dataset():
                                 "data", "bladder_test.npz")
     bladder_test = np.load(bladder_file)
 
-    in_features = bladder_test['in_feat']
+    in_features = bladder_test['Y']
     batch = bladder_test['batch']
     effects_interest = bladder_test['effects_interest']
     # Categorical features should one hot encoded, dropping the first column
@@ -197,23 +182,39 @@ def test_equivalence_to_R_impl_SVA_on_bladder_dataset():
 
     combat = ComBat()
 
-    in_feat_combat = combat.fit_transform(in_features=in_features, batch=batch)
-    assert np.allclose(in_feat_combat, bladder_test['in_feat_combat'])
+    Y_combat = combat.fit_transform(in_features=in_features, batch=batch)
+    assert np.allclose(Y_combat, bladder_test['Y_combat'])
 
-    in_feat_combat_effects = combat.fit_transform(in_features=in_features,
-                                                  batch=batch,
-                                                  effects_interest=effects_interest)
-    assert np.allclose(in_feat_combat_effects,
-                       bladder_test['in_feat_combat_effects'])
-
-
-def test_combat_batch_data_types():
-    """
-    Ensure it works for right and expected data types;
-    And also it generates an error for incorrect and unexpected data types!
-    """
-
-    # test1 re batch: it can be both numerical and categorical, but not floating
+    Y_combat_effects = combat.fit_transform(in_features=in_features,
+                                            batch=batch,
+                                            effects_interest=effects_interest)
+    assert np.allclose(Y_combat_effects, bladder_test['Y_combat_effects'])
 
 
-test_combat()
+def test_partial_correlation():
+    """check that partial correlations are less than correlations"""
+    n_samples = 100
+    train_all, train_y = make_classification(n_features=5)
+    train_X, train_confounds = splitter_X_confounds(train_all, 2)
+    # check that partial correlation with no confounds is the same as correlation using np.corrcoef
+    assert_almost_equal(np.corrcoef(train_X, rowvar=False),
+                        partial_correlation(train_X, C=np.zeros((train_X.shape[0], 1))))
+    # check that a linear regression fit using all variables has a lower r**2 partial correlation.
+    lr = LinearRegression().fit(train_all, train_y)
+    pred = lr.predict(train_all)
+    # return the partial correlation of predictions after removing confounds
+    corr_p = prediction_partial_correlation(pred, train_y, train_confounds)
+    assert_array_less(corr_p,lr.score(train_all, train_y))
+
+
+def test_partial_correlation_t_test():
+    C = np.random.normal(size=(100, 1))
+    C_dummy = np.zeros_like(C)
+    X = C + np.random.normal(0,0.1,size=(100, 10))
+    corr_p = partial_correlation(X, C=C_dummy)
+    t_statistic, statistical_significance = partial_correlation_t_test(corr_p, X.shape[0], C_dummy.shape[1])
+    corr_pd = partial_correlation(X, C=C)
+    t_statistic, statistical_significance_d = partial_correlation_t_test(corr_pd, X.shape[0], C.shape[1])
+    #checks that the partial correlations of variables with respect to confounds have are lower
+    idx=np.triu_indices_from(statistical_significance,1)
+    assert_array_less(statistical_significance[idx], statistical_significance_d[idx])
