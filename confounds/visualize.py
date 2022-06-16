@@ -3,6 +3,7 @@
 Module for the visualization for the confounds and their effects.
 
 """
+import seaborn as sns
 
 
 def samplets(features,
@@ -23,8 +24,7 @@ def samplets(features,
 
 
 def pairs(confounds,
-          color_by=None,
-          group_by=None):
+          color_by=None):
     """
     Plots each confound against the rest, one pair at a time, colored and grouped
     by other confounds (which are excluded in plots).
@@ -36,8 +36,8 @@ def pairs(confounds,
     Disease vs. Age, vs. Gender on the third row.
 
     """
-
-    raise NotImplementedError()
+    pp = sns.pairplot(confounds, hue=color_by)
+    return pp
 
 
 def before_after():

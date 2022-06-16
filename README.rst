@@ -17,9 +17,9 @@ Conquering confounds and covariates in machine learning
 News
 ~~~~~~~~~~~~~~~~
 
- - **Hackathon folks**: Those coming here from the hackathon, please go here to learn some ideas for contribution: https://github.com/ohbm/hackathon2020/issues/171
+ - **Hackathon folks**: Those coming here from the hackathon, please go here to learn some ideas for contribution: https://github.com/ohbm/hackathon2021/issues/34
 
- - The slides for the OHBM 2020 Hackathon and Open Science Room are here: https://crossinvalidation.com/2020/03/04/conquering-confounds-and-covariates-in-machine-learning/
+ - The previous slides for the OHBM Hackathon and Open Science Room are here: https://crossinvalidation.com/2020/03/04/conquering-confounds-and-covariates-in-machine-learning/
 
 Vision / Goals
 ~~~~~~~~~~~~~~~
@@ -51,10 +51,19 @@ To be added:
  - Harmonize (correct batch effects via rescaling or normalization etc)
  - Stratify (sub- or re-sampling procedures to minimize confounding)
  - Full set of utilities (Goals 1 and 3)
+ - reweight (based on propensity scores as in IPW, or based on confounds)
+ - estimate propensity scores
 
 In a more schematic way:
 
 .. image:: docs/schematic_method_impl_status.png
+
+
+
+Resources
+~~~~~~~~~
+any useful resources; papers, presentations, lectures related to the problems of confounding can be found here https://github.com/raamana/confounds/blob/master/docs/references_confounds.rst
+
 
 
 Citation
@@ -68,12 +77,10 @@ If you found any parts of ``confounds`` to be useful in your research, directly 
 Contributors are most welcome.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your contributions of all kinds will be greatly appreciated. Learn how to contributes here at `contrib_link`_.
+Your contributions of all kinds will be greatly appreciated. Learn how to contribute to this repo `here <CONTRIBUTING.rst>`_.
 
 All contributors making non-trivial contributions will be
 
- - publicly and clearly acknowledged on the `authors_link`_ page
- - become an author on the [software] paper to be published in the future.
+ - publicly and clearly acknowledged on the `authors page <AUTHORS.rst>`_
+ - become an author on the [software] paper to be published when it's ready soon.
 
-.. _contrib_link: CONTRIBUTING.rst
-.. _authors_link: AUTHORS.rst

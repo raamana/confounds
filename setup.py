@@ -6,7 +6,7 @@
 from setuptools import setup, find_packages
 import versioneer
 
-requirements = ['numpy', 'scikit-learn' ]
+requirements = ['numpy', 'scikit-learn', 'seaborn']
 setup_requirements = ['pytest-runner', 'setuptools']
 test_requirements = ['pytest', ] + requirements
 
@@ -26,7 +26,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     description="""Conquering confounds and covariates in machine learning
-    
+
 Vision / Goals
 ~~~~~~~~~~~~~~~
 
