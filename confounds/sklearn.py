@@ -3,7 +3,7 @@ import numpy as np
 from joblib import Parallel, delayed
 
 from sklearn.base import clone, is_classifier
-from sklearn.utils import check_array, check_X_y
+from sklearn.utils import check_array
 from sklearn.utils.validation import (check_is_fitted, check_consistent_length)
 from sklearn.base import BaseEstimator
 from sklearn.model_selection._split import check_cv
@@ -173,7 +173,9 @@ class DeconfEstimator(BaseEstimator):
             input_data = check_array(input_data)
             out = input_data, confounders
         else:
-            input_data, target_data = check_X_y(input_data, target_data)
+            input_data = check_array(input_data)
+            target_data = check_array(target_data, ensure_2d=False)
+            check_consistent_length(input_data, target_data)
             out = input_data, confounders, target_data
 
         return out
@@ -276,11 +278,9 @@ def deconfounded_cv_predict(
         The object to use to fit the data.
     X : array-like of shape (n_samples, n_features)
         The data to fit.
-        .. versionchanged:: 0.20
-            X is only required to be an object with finite length or shape now
-    y : array-like of shape (n_samples,) or (n_samples, n_outputs) or None
-        The target variable to try to predict in the case of
-        supervised learning.
+    y : array-like of shape (n_samples, n_output) \
+        or (n_samples,)
+        Target data.
     C :  array-like of shape (n_samples, n_covariates)
         Array of covariates.
     train : array-like of shape (n_train_samples,)
@@ -350,9 +350,9 @@ def _deconf_fit_and_predict(
         The data to fit.
         .. versionchanged:: 0.20
             X is only required to be an object with finite length or shape now
-    y : array-like of shape (n_samples,) or (n_samples, n_outputs) or None
-        The target variable to try to predict in the case of
-        supervised learning.
+    y : array-like of shape (n_samples, n_output) \
+        or (n_samples,)
+        Target data.
     C :  array-like of shape (n_samples, n_covariates)
         Array of covariates.
     train : array-like of shape (n_train_samples,)
@@ -364,7 +364,9 @@ def _deconf_fit_and_predict(
     fit_params : dict or None
         Parameters that will be passed to ``estimator.fit``.
     method : str
-        Invokes the passed method name of the passed estimator.
+        Invokes the passed method name of the passed estimator. For not it only
+        predict the labels. Future inplementations will include other methods
+        (e.g. prob, log_prob, etc)
     Returns
     -------
     predictions : ndarray
@@ -378,7 +380,7 @@ def _deconf_fit_and_predict(
     # N.B. estimator should be our sklearn wrapper. We should require this
     # during the initial checks of cross_val_predict
     estimator.fit(X_train, y_train, confounders=C_train)
-    predictions = estimator.predict(X_test, confounders=C_test)
+    predictions = getattr(estimator, method)(X_test, confounders=C_test)
 
     return predictions
 
