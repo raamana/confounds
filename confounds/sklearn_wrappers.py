@@ -290,7 +290,7 @@ def deconfounded_cv_predict(
 
     Parameters
     ----------
-    estimator : estimator object implementing 'fit' and 'predict'
+    estimator : DeconfEstimator from this module.
         The object to use to fit the data.
     X : array-like of shape (n_samples, n_features)
         The data to fit.
@@ -360,7 +360,7 @@ def _deconf_fit_and_predict(
 
     Parameters
     ----------
-    estimator : estimator object implementing 'fit' and 'predict'
+    estimator : DeconfEstimator from this module.
         The object to use to fit the data.
     X : array-like of shape (n_samples, n_features)
         The data to fit.
