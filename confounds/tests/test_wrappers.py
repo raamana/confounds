@@ -1,8 +1,9 @@
 import numpy as np
 
 from confounds import Residualize, Augment, DummyDeconfounding
-from confounds.sklearn import (DeconfEstimator, deconfounded_cv_predict,
-                               deconfounded_cv_score)
+from confounds.sklearn_wrappers import (DeconfEstimator,
+                                        deconfounded_cv_predict,
+                                        deconfounded_cv_score)
 
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.linear_model import LinearRegression, LogisticRegression
