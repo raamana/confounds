@@ -13,6 +13,22 @@ from confounds.base import Augment, DummyDeconfounding, Residualize
 
 
 class DeconfEstimator(BaseEstimator):
+    """
+    Estimator with a previous deconfounding of input data.
+
+    Wrapper that first deconfounds the input data according to a supplied
+    strategy and then run a passed estimator.
+
+    Parameters
+    ----------
+    deconfounder : deconfounder object
+        This is assumed to be one the deconfounders that can be found
+        in this library. Right now only it works for input independent data
+        deconfounding, that is Augment, DummyDeconfounding, Residualize.
+    estimator : estimator object
+        This is assumed to implement a scikit-learn estimator interface.
+
+    """
 
     def __init__(self,
                  deconfounder,

@@ -10,6 +10,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 
 
 def test_estimator_regression():
+    "Test regressor with previous deconfounding of input data."
 
     from sklearn.datasets import make_regression
 
@@ -46,6 +47,7 @@ def test_estimator_regression():
 
 
 def test_estimator_classification():
+    "Test classifier with previous deconfounding of input data."
 
     from sklearn.datasets import make_classification
 
@@ -82,6 +84,7 @@ def test_estimator_classification():
 
 
 def test_cv_regression():
+    "Test cross validation wrappers for a regression case."
 
     from sklearn.datasets import make_regression
 
@@ -125,6 +128,7 @@ def test_cv_regression():
 
 
 def test_cv_classification():
+    "Test cross validation wrappers for a classification case."
 
     from sklearn.datasets import make_classification
 
