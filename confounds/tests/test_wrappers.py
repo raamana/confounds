@@ -84,13 +84,13 @@ def test_cv_regression():
 
     from sklearn.datasets import make_regression
 
-    X, y = make_regression(n_features=10)
+    X, y = make_regression(n_features=10, n_targets=2)
 
     C = X[:, 7:]
     X = X[:, :7]
 
     regressor = LinearRegression()
-    deconf = Residualize()
+    deconf = Residualize(model='gpr')
     deconf_estim = DeconfEstimator(deconf, regressor)
 
     cv = KFold(n_splits=5, shuffle=False)
@@ -134,7 +134,7 @@ def test_cv_classification():
     X = X[:, :7]
 
     clf = LogisticRegression()
-    deconf = Residualize()
+    deconf = Residualize(model='ridge')
     deconf_estim = DeconfEstimator(deconf, clf)
 
     cv = KFold(n_splits=5, shuffle=False)
